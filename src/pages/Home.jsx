@@ -1,170 +1,231 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Search, BookOpen, Sparkles } from "lucide-react";
+import { Plus, BookOpen, Search, Sparkles, Upload } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import DeckCard from "@/components/DeckCard";
+import StatCard from "@/components/StatCard";
+
+function computeStreak(sessions) {
+  const days = [...new Set(sessions.map((s) => new Date(s.created_date).toISOString().slice(0, 10)))]
+    .sort()
+    .reverse();
+  if (!days.length) return 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  if (days[0] !== today && days[0] !== yesterday) return 0;
+  let streak = 1;
+  for (let i = 1; i < days.length; i++) {
+    const prev = new Date(days[i - 1]);
+    const cur = new Date(days[i]);
+    if (prev - cur === 86400000) streak++;
+    else break;
+  }
+  return streak;
+}
 
 export default function Home() {
-  const [mine, setMine] = useState([]);
-  const [pub, setPub] = useState([]);
+  const { user } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const query = params.get("q") || "";
+  const [allDecks, setAllDecks] = useState([]);
   const [counts, setCounts] = useState({});
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [tab, setTab] = useState("mine");
-  const [query, setQuery] = useState("");
 
   useEffect(() => {
     (async () => {
       try {
-        const me = await base44.auth.me();
-        setUser(me);
-      } catch {
-        setUser(null);
-      }
-      try {
-        const [myDecks, publicDecks] = await Promise.all([
-          base44.entities.Deck.list("-created_date", 50),
-          base44.entities.Deck.filter({ is_public: true }, "-created_date", 50),
+        const [decks, sess] = await Promise.all([
+          base44.entities.Deck.list("-created_date", 100),
+          base44.entities.StudySession.list("-created_date", 100).catch(() => []),
         ]);
-        const all = [...myDecks, ...publicDecks];
+        setAllDecks(decks);
+        setSessions(sess);
         const c = {};
         await Promise.all(
-          all.map(async (d) => {
+          decks.map(async (d) => {
             const list = await base44.entities.Card.filter({ deck_id: d.id }, undefined, 0);
             c[d.id] = list.length;
           })
         );
         setCounts(c);
-        setMine(myDecks);
-        setPub(publicDecks);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  const list = tab === "mine" ? mine : pub;
-  const filtered = query
-    ? list.filter(
-        (d) =>
-          d.title.toLowerCase().includes(query.toLowerCase()) ||
-          d.description?.toLowerCase().includes(query.toLowerCase())
-      )
-    : list;
+  const mine = allDecks.filter((d) => d.created_by_id === user?.id);
+  const pub = allDecks.filter((d) => d.is_public && d.created_by_id !== user?.id);
+
+  const matches = (d) =>
+    !query ||
+    d.title.toLowerCase().includes(query.toLowerCase()) ||
+    (d.description || "").toLowerCase().includes(query.toLowerCase());
+  const mineFiltered = mine.filter(matches);
+  const pubFiltered = pub.filter(matches);
+
+  const lastStudied = {};
+  sessions.forEach((s) => {
+    if (!lastStudied[s.deck_id]) lastStudied[s.deck_id] = s.created_date;
+  });
+
+  const cardsStudied = sessions.reduce((sum, s) => sum + (s.cards_studied || 0), 0);
+  const decksCreated = mine.length;
+  const activeStreak = computeStreak(sessions);
+
+  const setQuery = (val) => {
+    const next = new URLSearchParams(params);
+    if (val) next.set("q", val);
+    else next.delete("q");
+    setParams(next, { replace: true });
+  };
+
+  const firstName = (user?.full_name || user?.email || "").split(" ")[0] || "there";
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <section className="border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-20">
-          <motion.h1
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="font-display text-6xl md:text-7xl leading-[0.95] text-foreground tracking-tight"
-          >
-            Study smarter,
-            <br />
-            <span className="text-primary">remember longer.</span>
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
-            className="mt-6 max-w-md font-body text-sm text-muted-foreground leading-relaxed"
-          >
-            Build flashcard decks by hand or paste your notes and let AI draft the cards for you.
-            Then study three ways — flip, quiz, or type your answers.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-            className="mt-8 flex flex-wrap gap-3"
-          >
-            <Link
-              to="/create"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
-            >
-              <Plus className="w-4 h-4" /> Create a deck
-            </Link>
-            <Link
-              to="/create?ai=1"
-              className="inline-flex items-center gap-2 px-5 py-3 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors"
-            >
-              <Sparkles className="w-4 h-4" /> Generate with AI
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+    <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      {/* Welcome banner */}
+      <motion.section
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="border border-slate-200 bg-card rounded-md p-6 md:p-10"
+      >
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          Welcome back
+        </span>
+        <h1 className="mt-2 font-display font-bold text-foreground leading-[0.95] tracking-tight"
+          style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>
+          Hello, {firstName}.
+        </h1>
+        <p className="mt-3 max-w-md font-body text-sm text-muted-foreground leading-relaxed">
+          Your study library, ready when you are. Pick a deck, or build a new one.
+        </p>
 
-      {/* Library */}
-      <section className="max-w-6xl mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-          <div>
-            <h2 className="font-display text-3xl text-foreground">Library</h2>
-            <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mt-1">
-              {user ? "Your decks & the public library" : "Browse public study decks"}
-            </p>
+        <div className="mt-6 flex gap-3 flex-wrap">
+          <Link
+            to="/create"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
+          >
+            <Plus className="w-4 h-4" /> Create deck
+          </Link>
+          <Link
+            to="/create?import=1"
+            className="inline-flex items-center gap-2 px-5 py-3 border border-slate-200 font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
+          >
+            <Upload className="w-4 h-4" /> Import set
+          </Link>
+        </div>
+
+        <div className="mt-7 flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+          <StatCard label="Cards studied" value={loading ? "—" : cardsStudied} index={0} accent="text-positive" />
+          <StatCard label="Decks created" value={loading ? "—" : decksCreated} index={1} />
+          <StatCard label="Active streak" value={loading ? "—" : `${activeStreak}d`} index={2} accent="text-primary" />
+        </div>
+      </motion.section>
+
+      {/* Mobile search */}
+      <div className="mt-6 md:hidden relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search decks…"
+          className="w-full pl-9 pr-3 py-2.5 bg-card border border-slate-200 font-body text-sm focus:outline-none focus:border-primary rounded-md"
+        />
+      </div>
+
+      {/* Bento: My Decks + Public Library */}
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* My Decks */}
+        <section className="lg:col-span-8">
+          <div className="flex items-end justify-between mb-5">
+            <div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">My Decks</h2>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
+                {mineFiltered.length} {mineFiltered.length === 1 ? "deck" : "decks"}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {user && (
-              <button
-                onClick={() => setTab("mine")}
-                className={`px-4 py-2 font-mono text-xs uppercase tracking-widest border transition-colors ${
-                  tab === "mine"
-                    ? "border-primary text-primary"
-                    : "border-border text-muted-foreground hover:text-foreground"
-                }`}
+          {loading ? (
+            <div className="py-16 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
+              Loading…
+            </div>
+          ) : mineFiltered.length === 0 ? (
+            <div className="py-16 text-center border border-dashed border-slate-200 rounded-md">
+              <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
+              <p className="font-body text-sm text-muted-foreground mb-5">
+                {query ? "No decks match your search." : "You have no decks yet."}
+              </p>
+              <div className="flex justify-center gap-3">
+                <Link to="/create" className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest rounded-md">
+                  <Plus className="w-3.5 h-3.5" /> Create
+                </Link>
+                <Link to="/create?import=1" className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-slate-200 font-mono text-xs uppercase tracking-widest rounded-md hover:border-primary transition-colors">
+                  <Upload className="w-3.5 h-3.5" /> Import
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {mineFiltered.map((d, i) => (
+                <DeckCard
+                  key={d.id}
+                  deck={d}
+                  index={i}
+                  cardCount={counts[d.id]}
+                  lastStudied={lastStudied[d.id]}
+                />
+              ))}
+              <Link
+                to="/create"
+                className="min-h-[10rem] border border-dashed border-slate-200 rounded-md flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors p-6"
               >
-                My decks
-              </button>
-            )}
-            <button
-              onClick={() => setTab("public")}
-              className={`px-4 py-2 font-mono text-xs uppercase tracking-widest border transition-colors ${
-                tab === "public"
-                  ? "border-primary text-primary"
-                  : "border-border text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Public
-            </button>
-          </div>
-        </div>
+                <Plus className="w-7 h-7" />
+                <span className="font-display text-lg">Create / Import new deck</span>
+                <span className="font-mono text-[10px] uppercase tracking-widest">Start fresh or import a set</span>
+              </Link>
+            </div>
+          )}
+        </section>
 
-        <div className="relative mb-8 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search decks…"
-            className="w-full pl-10 pr-4 py-2.5 bg-card border border-border font-body text-sm focus:outline-none focus:border-primary"
-          />
-        </div>
-
-        {loading ? (
-          <div className="py-20 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Loading…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="py-20 text-center">
-            <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
-            <p className="font-body text-sm text-muted-foreground">
-              {tab === "mine"
-                ? "You have no decks yet. Create your first one."
-                : "No public decks match your search."}
+        {/* Public Library rail */}
+        <section id="library" className="lg:col-span-4 scroll-mt-20">
+          <div className="mb-5">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Public Library</h2>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
+              Community decks
             </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map((d, i) => (
-              <DeckCard key={d.id} deck={d} index={i} cardCount={counts[d.id]} />
-            ))}
-          </div>
-        )}
-      </section>
+          {loading ? (
+            <div className="py-16 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
+              Loading…
+            </div>
+          ) : pubFiltered.length === 0 ? (
+            <div className="py-12 text-center border border-dashed border-slate-200 rounded-md">
+              <p className="font-body text-sm text-muted-foreground">
+                {query ? "No public decks match." : "No public decks yet."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {pubFiltered.map((d, i) => (
+                <DeckCard
+                  key={d.id}
+                  deck={d}
+                  index={i}
+                  cardCount={counts[d.id]}
+                  lastStudied={lastStudied[d.id]}
+                  compact
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

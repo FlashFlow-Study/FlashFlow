@@ -7,17 +7,22 @@ function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-export default function TypeMode({ cards, onExit }) {
+export default function TypeMode({ cards, onExit, onComplete }) {
   const [index, setIndex] = useState(0);
   const [value, setValue] = useState("");
   const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(0);
 
   const card = cards[index];
   const correct = checked && normalize(value) === normalize(card.back);
 
-  const check = () => setChecked(true);
+  const check = () => {
+    setChecked(true);
+    if (normalize(value) === normalize(card.back)) setScore((s) => s + 1);
+  };
 
   const next = () => {
+    if (index >= cards.length - 1) onComplete?.({ cards_studied: cards.length, score });
     setValue("");
     setChecked(false);
     setIndex((i) => i + 1);

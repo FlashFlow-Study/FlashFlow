@@ -1,30 +1,39 @@
 {
-  "name": "Card",
+  "name": "StudySession",
   "type": "object",
   "properties": {
     "deck_id": {
       "type": "string"
     },
-    "front": {
+    "deck_title": {
       "type": "string",
-      "minLength": 1
+      "default": ""
     },
-    "back": {
+    "mode": {
       "type": "string",
-      "minLength": 1
+      "enum": [
+        "flashcards",
+        "quiz",
+        "type"
+      ]
     },
-    "order": {
+    "cards_studied": {
+      "type": "number",
+      "default": 0
+    },
+    "score": {
       "type": "number",
       "default": 0
     }
   },
   "required": [
     "deck_id",
-    "front",
-    "back"
+    "mode"
   ],
   "rls": {
-    "read": {},
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
     "create": {
       "created_by_id": "{{user.id}}"
     },

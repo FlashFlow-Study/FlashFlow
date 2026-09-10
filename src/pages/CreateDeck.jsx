@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Trash2, Sparkles, Loader2, Upload } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import ImportPanel from "@/components/ImportPanel";
 
 export default function CreateDeck() {
   const [params] = useSearchParams();
@@ -13,11 +14,22 @@ export default function CreateDeck() {
   const [tags, setTags] = useState("");
   const [cards, setCards] = useState([{ front: "", back: "" }]);
   const [notes, setNotes] = useState("");
-  const [mode, setMode] = useState(params.get("ai") === "1" ? "ai" : "manual");
+  const [mode, setMode] = useState(
+    params.get("ai") === "1" ? "ai" : params.get("import") === "1" ? "import" : "manual"
+  );
   const [count, setCount] = useState(12);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const handleImport = (result) => {
+    if (result.title) setTitle(result.title);
+    if (result.description !== undefined) setDescription(result.description || "");
+    if (result.is_public !== undefined) setIsPublic(!!result.is_public);
+    if (result.tags) setTags(Array.isArray(result.tags) ? result.tags.join(", ") : "");
+    setCards(result.cards.map((c) => ({ front: c.front, back: c.back })));
+    setMode("manual");
+  };
 
   const updateCard = (i, field, val) => {
     setCards((c) => c.map((card, idx) => (idx === i ? { ...card, [field]: val } : card)));
@@ -116,6 +128,16 @@ export default function CreateDeck() {
           >
             <Sparkles className="w-3.5 h-3.5 inline mr-1.5" /> AI generate
           </button>
+          <button
+            onClick={() => setMode("import")}
+            className={`px-4 py-2 font-mono text-xs uppercase tracking-widest border transition-colors ${
+              mode === "import"
+                ? "border-primary text-primary"
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Upload className="w-3.5 h-3.5 inline mr-1.5" /> Import
+          </button>
         </div>
 
         {/* Deck meta */}
@@ -172,7 +194,7 @@ export default function CreateDeck() {
 
         {/* AI mode */}
         {mode === "ai" ? (
-          <div className="mt-8 p-6 border border-border bg-card">
+          <div className="mt-8 p-6 border border-slate-200 bg-card rounded-md">
             <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               Paste your study notes
             </label>
@@ -204,6 +226,13 @@ export default function CreateDeck() {
                 {generating ? "Generating…" : "Generate cards"}
               </button>
             </div>
+          </div>
+        ) : mode === "import" ? (
+          <div className="mt-8">
+            <ImportPanel onParsed={handleImport} onError={setError} />
+            <p className="mt-4 font-mono text-[11px] text-muted-foreground">
+              After importing, review and edit the cards below before saving.
+            </p>
           </div>
         ) : (
           <div className="mt-8 space-y-3">

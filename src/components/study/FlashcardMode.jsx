@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, RotateCw } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 
-export default function FlashcardMode({ cards, onExit }) {
+export default function FlashcardMode({ cards, onExit, onComplete }) {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const card = cards[index];
@@ -11,6 +11,7 @@ export default function FlashcardMode({ cards, onExit }) {
   const next = () => {
     setFlipped(false);
     if (index < cards.length - 1) setIndex(index + 1);
+    else onComplete?.({ cards_studied: cards.length });
   };
   const prev = () => {
     setFlipped(false);

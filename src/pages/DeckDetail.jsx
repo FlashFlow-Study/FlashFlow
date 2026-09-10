@@ -3,10 +3,13 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layers, Globe, Lock, Trash2, Play } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import ExportMenu from "@/components/ExportMenu";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function DeckDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [deck, setDeck] = useState(null);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -110,19 +113,24 @@ export default function DeckDetail() {
         </div>
 
         {/* Actions */}
-        <div className="mt-8 flex gap-3">
-          <button
-            onClick={togglePublic}
-            className="px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors"
-          >
-            Make {deck.is_public ? "private" : "public"}
-          </button>
-          <button
-            onClick={remove}
-            className="px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest text-destructive hover:border-destructive transition-colors"
-          >
-            <Trash2 className="w-3.5 h-3.5 inline mr-1.5" /> Delete
-          </button>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <ExportMenu deck={deck} cards={cards} />
+          {deck.created_by_id === user?.id && (
+            <>
+              <button
+                onClick={togglePublic}
+                className="px-4 py-2.5 border border-slate-200 font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
+              >
+                Make {deck.is_public ? "private" : "public"}
+              </button>
+              <button
+                onClick={remove}
+                className="px-4 py-2.5 border border-slate-200 font-mono text-xs uppercase tracking-widest text-destructive hover:border-destructive transition-colors rounded-md"
+              >
+                <Trash2 className="w-3.5 h-3.5 inline mr-1.5" /> Delete
+              </button>
+            </>
+          )}
         </div>
 
         {/* Cards list */}

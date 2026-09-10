@@ -3,7 +3,20 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Globe, Lock, Layers } from "lucide-react";
 
-export default function DeckCard({ deck, index = 0, cardCount }) {
+function relativeDate(iso) {
+  if (!iso) return null;
+  const diff = Date.now() - new Date(iso).getTime();
+  const day = 86400000;
+  if (diff < day) return "today";
+  if (diff < 2 * day) return "yesterday";
+  const d = Math.floor(diff / day);
+  if (d < 7) return `${d}d ago`;
+  if (d < 30) return `${Math.floor(d / 7)}w ago`;
+  return `${Math.floor(d / 30)}mo ago`;
+}
+
+export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact }) {
+  const studied = relativeDate(lastStudied);
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -13,10 +26,12 @@ export default function DeckCard({ deck, index = 0, cardCount }) {
     >
       <Link
         to={`/deck/${deck.id}`}
-        className="group block h-full bg-card border border-border p-6 transition-colors hover:border-primary"
+        className={`group block h-full bg-card border border-slate-200 transition-colors hover:border-primary rounded-md ${
+          compact ? "p-4" : "p-6"
+        }`}
       >
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-2xl leading-tight text-foreground tracking-tight">
+          <h3 className={`font-display leading-tight text-foreground tracking-tight ${compact ? "text-xl" : "text-2xl"}`}>
             {deck.title}
           </h3>
           <span
@@ -37,22 +52,15 @@ export default function DeckCard({ deck, index = 0, cardCount }) {
         ) : (
           <p className="mt-3 text-sm font-body text-muted-foreground italic">No description</p>
         )}
-        <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
+        <div className={`mt-5 flex items-center justify-between border-t border-slate-200 pt-4 ${compact ? "mt-3 pt-3" : ""}`}>
           <span className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
             <Layers className="w-3.5 h-3.5" />
             {cardCount ?? "—"} cards
           </span>
-          {deck.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {deck.tags.slice(0, 3).map((t) => (
-                <span
-                  key={t}
-                  className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground"
-                >
-                  #{t}
-                </span>
-              ))}
-            </div>
+          {studied && (
+            <span className="text-[10px] font-mono uppercase tracking-widest text-primary/80">
+              Studied {studied}
+            </span>
           )}
         </div>
       </Link>

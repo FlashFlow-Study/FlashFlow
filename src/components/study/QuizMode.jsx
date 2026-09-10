@@ -12,7 +12,7 @@ function shuffle(arr) {
   return a;
 }
 
-export default function QuizMode({ cards, onExit }) {
+export default function QuizMode({ cards, onExit, onComplete }) {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
@@ -34,6 +34,7 @@ export default function QuizMode({ cards, onExit }) {
   };
 
   const next = () => {
+    if (index >= cards.length - 1) onComplete?.({ cards_studied: cards.length, score });
     setSelected(null);
     setIndex((i) => i + 1);
   };
