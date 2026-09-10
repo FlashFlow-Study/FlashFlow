@@ -1,0 +1,26 @@
+{
+  "name": "Card",
+  "type": "object",
+  "properties": {
+    "deck_id": {
+      "type": "string"
+    },
+    "front": {
+      "type": "string",
+      "minLength": 1
+    },
+    "back": {
+      "type": "string",
+      "minLength": 1
+    },
+    "order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "deck_id",
+    "front",
+    "back"
+  ]
+}
