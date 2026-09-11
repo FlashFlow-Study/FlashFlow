@@ -56,19 +56,28 @@ export default function AppLayout() {
           >
             <Plus className="w-3.5 h-3.5" /> Import Set
           </Link>
-          <Link
-            to="/account"
-            className={`inline-flex items-center gap-2 px-2.5 py-1.5 border rounded-md transition-colors ${
-              location.pathname === "/account" ? "border-primary" : "border-slate-200 hover:border-primary"
-            }`}
-          >
-            <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-display text-sm font-bold">
-              {initial}
-            </span>
-            <span className="hidden md:inline font-mono text-xs text-foreground">
-              {user?.full_name || "Account"}
-            </span>
-          </Link>
+          {user ? (
+            <Link
+              to="/account"
+              className={`inline-flex items-center gap-2 px-2.5 py-1.5 border rounded-md transition-colors ${
+                location.pathname === "/account" ? "border-primary" : "border-slate-200 hover:border-primary"
+              }`}
+            >
+              <span className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-display text-sm font-bold">
+                {initial}
+              </span>
+              <span className="hidden md:inline font-mono text-xs text-foreground">
+                {user?.full_name || "Account"}
+              </span>
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-primary-foreground font-mono text-[11px] uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
+            >
+              <User className="w-3.5 h-3.5" /> Sign in
+            </Link>
+          )}
         </div>
       </header>
 
@@ -81,7 +90,7 @@ export default function AppLayout() {
           <NavItem to="/" icon={Layers} label="Decks" active={location.pathname === "/"} />
           <NavItem to="/#library" icon={LibraryIcon} label="Library" active={location.hash === "#library"} />
           <NavItem to="/create?import=1" icon={Plus} label="Import" active={location.pathname === "/create"} />
-          <NavItem to="/account" icon={User} label="Profile" active={location.pathname === "/account"} />
+          <NavItem to={user ? "/account" : "/login"} icon={User} label={user ? "Profile" : "Sign in"} active={location.pathname === "/account"} />
         </div>
       </nav>
     </div>

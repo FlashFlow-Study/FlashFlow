@@ -1,19 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Layers } from "lucide-react";
+import { Layers, Lock, LogIn } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import FlashcardMode from "@/components/study/FlashcardMode";
 import QuizMode from "@/components/study/QuizMode";
 import TypeMode from "@/components/study/TypeMode";
 
 export default function Study() {
   const { id, mode } = useParams();
+  const { user } = useAuth();
   const [deck, setDeck] = useState(null);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const recordedRef = useRef(false);
 
   const handleComplete = async (stats) => {
+    if (!user) return;
     if (recordedRef.current) return;
     recordedRef.current = true;
     try {
@@ -62,6 +65,42 @@ export default function Study() {
         </Link>
       </div>
     );
+
+  const gated = mode !== "flashcards";
+  if (gated && !user) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="border-b border-border">
+          <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+            <Link to={`/deck/${id}`} className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
+              ← {deck.title}
+            </Link>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
+              {mode === "quiz" ? "Quiz mode" : "Type mode"}
+            </span>
+          </div>
+        </header>
+        <main className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="max-w-md w-full text-center border border-slate-200 bg-card rounded-md p-8">
+            <Lock className="w-8 h-8 text-primary mx-auto mb-4" />
+            <h2 className="font-display text-2xl text-foreground">Sign in to continue</h2>
+            <p className="mt-2 font-body text-sm text-muted-foreground">
+              {mode === "quiz" ? "Quiz" : "Type"} mode is available once you sign in. Flashcard mode is free to practice.
+            </p>
+            <Link
+              to={`/login?returnTo=${encodeURIComponent(`/study/${id}/${mode}`)}`}
+              className="mt-6 inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
+            >
+              <LogIn className="w-4 h-4" /> Sign in
+            </Link>
+            <Link to={`/study/${id}/flashcards`} className="mt-3 block font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground">
+              Practice with flashcards instead →
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const Mode = mode === "quiz" ? QuizMode : mode === "type" ? TypeMode : FlashcardMode;
 

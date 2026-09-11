@@ -49,15 +49,15 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Home />} />
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/deck/:id" element={<DeckDetail />} />
+        <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           <Route path="/create" element={<CreateDeck />} />
-          <Route path="/deck/:id" element={<DeckDetail />} />
           <Route path="/account" element={<Account />} />
         </Route>
-        <Route path="/study/:id/:mode" element={<Study />} />
       </Route>
+      <Route path="/study/:id/:mode" element={<Study />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
