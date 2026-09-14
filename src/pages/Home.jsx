@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, BookOpen, Search, Sparkles, Upload } from "lucide-react";
+import { Plus, BookOpen, Search, Sparkles, Upload, KeyRound, School } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import DeckCard from "@/components/DeckCard";
@@ -61,6 +61,9 @@ export default function Home() {
 
   const mine = allDecks.filter((d) => d.created_by_id === user?.id);
   const pub = allDecks.filter((d) => d.is_public && d.created_by_id !== user?.id);
+  const classroomDecks = allDecks.filter(
+    (d) => d.classroom_id && d.created_by_id !== user?.id
+  );
 
   const matches = (d) =>
     !query ||
@@ -234,6 +237,53 @@ export default function Home() {
           )}
         </section>
       </div>
+
+      {/* Classroom decks */}
+      {classroomDecks.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-5">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Classroom Decks</h2>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
+              From your classes
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {classroomDecks.map((d, i) => (
+              <DeckCard
+                key={d.id}
+                deck={d}
+                index={i}
+                cardCount={counts[d.id]}
+                lastStudied={lastStudied[d.id]}
+                creatorName={creatorName(d)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Join a class prompt */}
+      {classroomDecks.length === 0 && user && (
+        <section className="mt-8 p-6 border border-dashed border-blue-200 dark:border-blue-800 rounded-md flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <School className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-display text-lg text-foreground">Join a class</p>
+              <p className="font-body text-sm text-muted-foreground">
+                Enter a code from your teacher to access their flashcard sets.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/join"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md shrink-0"
+          >
+            <KeyRound className="w-4 h-4" /> Join a class
+          </Link>
+        </section>
+      )}
     </div>
   );
 }

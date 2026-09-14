@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Globe, Lock, Layers, User } from "lucide-react";
+import { Globe, Lock, Layers, User, School } from "lucide-react";
 
 function relativeDate(iso) {
   if (!iso) return null;
@@ -36,13 +36,15 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
           </h3>
           <span
             className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-2 py-1 border ${
-              deck.is_public
+              deck.classroom_id
+                ? "border-indigo-300 text-indigo-600 dark:border-indigo-700 dark:text-indigo-400"
+                : deck.is_public
                 ? "border-primary/30 text-primary"
                 : "border-border text-muted-foreground"
             }`}
           >
-            {deck.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-            {deck.is_public ? "Public" : "Private"}
+            {deck.classroom_id ? <School className="w-3 h-3" /> : deck.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+            {deck.classroom_id ? "Class" : deck.is_public ? "Public" : "Private"}
           </span>
         </div>
         {deck.description ? (

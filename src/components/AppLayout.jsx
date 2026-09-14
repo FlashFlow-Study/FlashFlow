@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Outlet, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { Search, Plus, Layers, User, FolderOpen } from "lucide-react";
+import { Search, Plus, Layers, User, FolderOpen, School } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 function NavItem({ to, icon: Icon, label, active }) {
@@ -62,6 +62,18 @@ export default function AppLayout() {
               <FolderOpen className="w-3.5 h-3.5" /> My Decks
             </Link>
           )}
+          {user && (
+            <Link
+              to="/classrooms"
+              className={`hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border font-mono text-[11px] uppercase tracking-widest transition-colors rounded-md ${
+                location.pathname.startsWith("/classroom")
+                  ? "border-primary text-primary"
+                  : "border-blue-200 dark:border-blue-800 text-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              <School className="w-3.5 h-3.5" /> Classes
+            </Link>
+          )}
           <Link
             to="/create?import=1"
             className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
@@ -114,9 +126,10 @@ export default function AppLayout() {
       </footer>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-blue-100 dark:border-blue-900/50">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           <NavItem to="/" icon={Layers} label="Decks" active={location.pathname === "/"} />
           <NavItem to="/search" icon={Search} label="Search" active={location.pathname === "/search"} />
+          <NavItem to="/classrooms" icon={School} label="Classes" active={location.pathname.startsWith("/classroom")} />
           <NavItem to={user ? "/my-decks" : "/create?import=1"} icon={user ? FolderOpen : Plus} label={user ? "My Decks" : "Import"} active={location.pathname === "/my-decks" || location.pathname === "/create"} />
           <NavItem to={user ? "/account" : "/login"} icon={User} label={user ? "Profile" : "Sign in"} active={location.pathname === "/account"} />
         </div>

@@ -27,6 +27,7 @@ export default function Account() {
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState("");
+  const [togglingTeacher, setTogglingTeacher] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -58,6 +59,19 @@ export default function Account() {
       setError(e.response?.data?.error || "Couldn't save your name.");
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const toggleTeacherMode = async () => {
+    setTogglingTeacher(true);
+    setError("");
+    try {
+      await base44.auth.updateMe({ is_teacher: !user?.data?.is_teacher });
+      window.location.reload();
+    } catch (e) {
+      setError(e.response?.data?.error || "Couldn't update teacher mode.");
+    } finally {
+      setTogglingTeacher(false);
     }
   };
 
@@ -124,6 +138,36 @@ export default function Account() {
               {nameSaved ? "Saved" : "Save"}
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Teacher mode */}
+      <section className="mt-6 p-6 border border-blue-200 dark:border-blue-800 bg-card rounded-md">
+        <h2 className="font-display text-2xl text-foreground">Teacher mode</h2>
+        <p className="mt-2 font-body text-sm text-muted-foreground max-w-md">
+          Enable teacher mode to create classrooms, invite students by email or join code, and share private flashcard sets with your classes.
+        </p>
+        <div className="mt-5 flex items-center justify-between gap-4">
+          <div>
+            <p className="font-display text-base text-foreground">
+              {user?.data?.is_teacher ? "Teacher mode is on" : "Teacher mode is off"}
+            </p>
+            <p className="font-mono text-xs text-muted-foreground">
+              {user?.role === "admin" ? "Admin — always included" : "Toggle to manage classrooms"}
+            </p>
+          </div>
+          <button
+            onClick={toggleTeacherMode}
+            disabled={togglingTeacher}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors rounded-md disabled:opacity-40 ${
+              user?.data?.is_teacher
+                ? "border border-border hover:border-primary"
+                : "bg-primary text-primary-foreground hover:opacity-90"
+            }`}
+          >
+            {togglingTeacher ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {user?.data?.is_teacher ? "Turn off" : "Turn on"}
+          </button>
         </div>
       </section>
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Layers, Globe, Lock, Trash2, Play, Pencil, User } from "lucide-react";
+import { Layers, Globe, Lock, Trash2, Play, Pencil, User, Star, School } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ExportMenu from "@/components/ExportMenu";
+import StarToggle from "@/components/StarToggle";
 import { useAuth } from "@/lib/AuthContext";
 import { useCreators } from "@/hooks/useCreators";
 
@@ -15,6 +16,9 @@ export default function DeckDetail() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [flippedIndex, setFlippedIndex] = useState(null);
+  const [starredIds, setStarredIds] = useState(new Set());
+  const [starredRecords, setStarredRecords] = useState({});
+  const [starredOnly, setStarredOnly] = useState(false);
   const { creatorName } = useCreators(deck ? [deck] : []);
 
   useEffect(() => {
@@ -22,8 +26,15 @@ export default function DeckDetail() {
       try {
         const d = await base44.entities.Deck.get(id);
         setDeck(d);
-        const c = await base44.entities.Card.filter({ deck_id: id }, "order", 100);
+        const [c, stars] = await Promise.all([
+          base44.entities.Card.filter({ deck_id: id }, "order", 100),
+          base44.entities.UserCardStar.filter({ deck_id: id }).catch(() => []),
+        ]);
         setCards(c);
+        setStarredIds(new Set(stars.map((s) => s.card_id)));
+        const recs = {};
+        stars.forEach((s) => { recs[s.card_id] = s.id; });
+        setStarredRecords(recs);
       } catch {
         setDeck(false);
       } finally {
@@ -41,6 +52,22 @@ export default function DeckDetail() {
     await base44.entities.Card.deleteMany({ deck_id: id });
     await base44.entities.Deck.delete(id);
     navigate("/");
+  };
+
+  const toggleStar = async (cardId) => {
+    if (starredIds.has(cardId)) {
+      try {
+        await base44.entities.UserCardStar.delete(starredRecords[cardId]);
+        setStarredIds((prev) => { const n = new Set(prev); n.delete(cardId); return n; });
+        setStarredRecords((prev) => { const n = { ...prev }; delete n[cardId]; return n; });
+      } catch { /* ignore */ }
+    } else {
+      try {
+        const rec = await base44.entities.UserCardStar.create({ card_id: cardId, deck_id: id });
+        setStarredIds((prev) => new Set(prev).add(cardId));
+        setStarredRecords((prev) => ({ ...prev, [cardId]: rec.id }));
+      } catch { /* ignore */ }
+    }
   };
 
   if (loading)
@@ -76,6 +103,11 @@ export default function DeckDetail() {
               {deck.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
               {deck.is_public ? "Public" : "Private"}
             </span>
+            {deck.classroom_id && (
+              <span className="ml-2 inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-1 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 rounded-md">
+                <School className="w-3 h-3" /> Class
+              </span>
+            )}
             <h1 className="font-display text-5xl text-foreground mt-3 tracking-tight">{deck.title}</h1>
             {creatorName(deck) && (
               <div className="mt-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
@@ -101,7 +133,23 @@ export default function DeckDetail() {
 
         {/* Study modes */}
         <div className="mt-8">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Study modes</p>
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Study modes</p>
+            {starredIds.size > 0 && (
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={starredOnly}
+                  onChange={(e) => setStarredOnly(e.target.checked)}
+                  className="accent-primary"
+                />
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                  Starred only ({starredIds.size})
+                </span>
+              </label>
+            )}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { mode: "flashcards", label: "Flashcards" },
@@ -110,7 +158,7 @@ export default function DeckDetail() {
             ].map((m) => (
               <Link
                 key={m.mode}
-                to={`/study/${id}/${m.mode}`}
+                to={`/study/${id}/${m.mode}${starredOnly ? "?starred=1" : ""}`}
                 className="group p-5 border border-border bg-card hover:border-primary transition-colors flex items-center justify-between"
               >
                 <span className="font-display text-xl text-foreground">{m.label}</span>
@@ -149,7 +197,14 @@ export default function DeckDetail() {
 
         {/* Cards list */}
         <div className="mt-10">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-4">All cards</p>
+          <div className="flex items-center gap-3 mb-4">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">All cards</p>
+            {starredIds.size > 0 && (
+              <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-amber-500">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {starredIds.size} starred
+              </span>
+            )}
+          </div>
           {cards.length === 0 ? (
             <p className="font-body text-sm text-muted-foreground">This deck has no cards yet.</p>
           ) : (
@@ -166,7 +221,10 @@ export default function DeckDetail() {
                   <div className="flex items-start gap-3">
                     <span className="font-mono text-xs text-muted-foreground pt-0.5">{i + 1}</span>
                     <div className="flex-1">
-                      <p className="font-display text-lg text-foreground">{c.front}</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-display text-lg text-foreground">{c.front}</p>
+                        <StarToggle starred={starredIds.has(c.id)} onToggle={() => toggleStar(c.id)} />
+                      </div>
                       {flippedIndex === i && (
                         <motion.p
                           initial={{ opacity: 0, height: 0 }}

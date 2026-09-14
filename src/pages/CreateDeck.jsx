@@ -3,11 +3,16 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Trash2, Sparkles, Loader2, Upload } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import ImportPanel from "@/components/ImportPanel";
 
 export default function CreateDeck() {
+  const { user } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const classroomId = params.get("classroom_id") || "";
+  const [classrooms, setClassrooms] = useState([]);
+  const [selectedClassroom, setSelectedClassroom] = useState(classroomId);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
@@ -21,6 +26,14 @@ export default function CreateDeck() {
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (user?.data?.is_teacher) {
+      base44.entities.Classroom.list("-created_date", 100)
+        .then((list) => setClassrooms(list.filter((c) => c.created_by_id === user.id)))
+        .catch(() => {});
+    }
+  }, [user?.id]);
 
   const handleImport = (result) => {
     if (result.title) setTitle(result.title);
@@ -73,14 +86,28 @@ export default function CreateDeck() {
     }
     setSaving(true);
     try {
+      let classroomMembers = [];
+      let classroomName = "";
+      if (selectedClassroom) {
+        const classroom = classrooms.find((c) => c.id === selectedClassroom);
+        classroomName = classroom?.name || "";
+        const memberships = await base44.entities.ClassroomMembership.filter({
+          classroom_id: selectedClassroom,
+          status: "joined",
+        });
+        classroomMembers = memberships.map((m) => m.user_id).filter(Boolean);
+      }
       const deck = await base44.entities.Deck.create({
         title: title.trim(),
         description: description.trim(),
-        is_public: isPublic,
+        is_public: selectedClassroom ? false : isPublic,
         tags: tags
           .split(",")
           .map((t) => t.trim().toLowerCase())
           .filter(Boolean),
+        classroom_id: selectedClassroom || undefined,
+        classroom_name: classroomName,
+        classroom_members: classroomMembers,
       });
       await base44.entities.Card.bulkCreate(
         valid.map((c, i) => ({
@@ -190,6 +217,26 @@ export default function CreateDeck() {
               </button>
             </div>
           </div>
+          {classrooms.length > 0 && (
+            <div>
+              <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Classroom</label>
+              <select
+                value={selectedClassroom}
+                onChange={(e) => setSelectedClassroom(e.target.value)}
+                className="w-full mt-1 px-4 py-3 bg-card border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+              >
+                <option value="">None — personal deck</option>
+                {classrooms.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              {selectedClassroom && (
+                <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
+                  This deck will be private — only class members can access it.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* AI mode */}

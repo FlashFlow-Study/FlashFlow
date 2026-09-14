@@ -1,0 +1,66 @@
+{
+  "name": "ClassroomMembership",
+  "type": "object",
+  "properties": {
+    "classroom_id": {
+      "type": "string"
+    },
+    "classroom_name": {
+      "type": "string",
+      "default": ""
+    },
+    "student_email": {
+      "type": "string",
+      "minLength": 1
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "invited",
+        "joined"
+      ],
+      "default": "invited"
+    }
+  },
+  "required": [
+    "classroom_id",
+    "student_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.student_email": "{{user.email}}"
+        },
+        {
+          "data.user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.student_email": "{{user.email}}"
+        },
+        {
+          "data.user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Layers, Lock, LogIn } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -10,6 +10,8 @@ import TypeMode from "@/components/study/TypeMode";
 export default function Study() {
   const { id, mode } = useParams();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const starredOnly = searchParams.get("starred") === "1";
   const [deck, setDeck] = useState(null);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +39,12 @@ export default function Study() {
       try {
         const d = await base44.entities.Deck.get(id);
         setDeck(d);
-        const c = await base44.entities.Card.filter({ deck_id: id }, "order", 100);
+        let c = await base44.entities.Card.filter({ deck_id: id }, "order", 100);
+        if (starredOnly) {
+          const stars = await base44.entities.UserCardStar.filter({ deck_id: id }).catch(() => []);
+          const sIds = new Set(stars.map((s) => s.card_id));
+          c = c.filter((card) => sIds.has(card.id));
+        }
         setCards(c);
       } catch {
         setDeck(false);
@@ -45,7 +52,7 @@ export default function Study() {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, starredOnly]);
 
   if (loading)
     return (
