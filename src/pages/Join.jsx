@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { KeyRound, Loader2, CheckCircle2, Users } from "lucide-react";
+import { KeyRound, Loader2, CheckCircle2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function Join() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [code, setCode] = useState("");
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
@@ -19,10 +21,42 @@ export default function Join() {
     }
     setJoining(true);
     try {
-      const res = await base44.functions.invoke("joinClassroom", {
-        join_code: code.trim().toUpperCase(),
+      const normalizedCode = code.trim().toUpperCase();
+      const classrooms = await base44.entities.Classroom.filter({
+        join_code: normalizedCode,
       });
-      setSuccess(res.data?.classroom || res.data);
+      if (!classrooms.length) {
+        setError("Invalid join code.");
+        return;
+      }
+      const classroom = classrooms[0];
+
+      const existing = await base44.entities.ClassroomMembership.filter({
+        classroom_id: classroom.id,
+        student_email: user.email,
+      });
+
+      if (existing.length > 0) {
+        const membership = existing[0];
+        if (membership.status === "joined") {
+          setSuccess(classroom);
+          return;
+        }
+        await base44.entities.ClassroomMembership.update(membership.id, {
+          user_id: user.id,
+          status: "joined",
+        });
+      } else {
+        await base44.entities.ClassroomMembership.create({
+          classroom_id: classroom.id,
+          classroom_name: classroom.name,
+          student_email: user.email,
+          user_id: user.id,
+          status: "joined",
+        });
+      }
+
+      setSuccess(classroom);
     } catch (e) {
       setError(e.response?.data?.error || "Couldn't join that classroom.");
     } finally {
