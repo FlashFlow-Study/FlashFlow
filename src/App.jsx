@@ -12,6 +12,8 @@ import CreateDeck from './pages/CreateDeck';
 import DeckDetail from './pages/DeckDetail';
 import Study from './pages/Study';
 import Account from './pages/Account';
+import About from './pages/About';
+import Contact from './pages/Contact';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -51,6 +53,8 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/deck/:id" element={<DeckDetail />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           <Route path="/create" element={<CreateDeck />} />

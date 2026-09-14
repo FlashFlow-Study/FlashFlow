@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Outlet, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { Search, Plus, Layers, Library as LibraryIcon, User } from "lucide-react";
+import { Search, Plus, Layers, Library as LibraryIcon, User, Info, Mail } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 function NavItem({ to, icon: Icon, label, active }) {
@@ -51,6 +51,18 @@ export default function AppLayout() {
           </div>
           <div className="flex-1 md:flex-none" />
           <Link
+            to="/about"
+            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
+          >
+            <Info className="w-3.5 h-3.5" /> About
+          </Link>
+          <Link
+            to="/contact"
+            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
+          >
+            <Mail className="w-3.5 h-3.5" /> Contact
+          </Link>
+          <Link
             to="/create?import=1"
             className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
           >
@@ -84,6 +96,22 @@ export default function AppLayout() {
       <main className="flex-1 pb-20 md:pb-0">
         <Outlet />
       </main>
+
+      <footer className="border-t border-slate-200 bg-card pb-16 md:pb-0">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            © {new Date().getFullYear()} FlashFlow
+          </span>
+          <div className="flex items-center gap-5">
+            <Link to="/about" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+              About
+            </Link>
+            <Link to="/contact" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+              Contact
+            </Link>
+          </div>
+        </div>
+      </footer>
 
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-slate-200">
         <div className="grid grid-cols-4">
