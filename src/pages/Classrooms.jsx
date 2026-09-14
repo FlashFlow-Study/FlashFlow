@@ -16,6 +16,7 @@ export default function Classrooms() {
   const { user } = useAuth();
   const isTeacher = user?.data?.is_teacher === true;
   const [classrooms, setClassrooms] = useState([]);
+  const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
@@ -27,18 +28,23 @@ export default function Classrooms() {
   useEffect(() => {
     (async () => {
       try {
-        const list = await base44.entities.Classroom.list("-created_date", 100);
+        const [list, myMemberships] = await Promise.all([
+          base44.entities.Classroom.list("-created_date", 100),
+          base44.entities.ClassroomMembership.filter({ student_email: user?.email, status: "joined" }).catch(() => []),
+        ]);
         setClassrooms(list);
+        setMemberships(myMemberships);
       } catch {
         /* ignore */
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [user?.email]);
 
   const myClassrooms = classrooms.filter((c) => c.created_by_id === user?.id);
-  const joinedClassrooms = classrooms.filter((c) => c.created_by_id !== user?.id);
+  const joinedClassroomIds = new Set(memberships.map((m) => m.classroom_id));
+  const joinedClassrooms = classrooms.filter((c) => joinedClassroomIds.has(c.id));
 
   const create = async () => {
     setError("");

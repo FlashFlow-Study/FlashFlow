@@ -33,18 +33,21 @@ export default function Home() {
   const [allDecks, setAllDecks] = useState([]);
   const [counts, setCounts] = useState({});
   const [sessions, setSessions] = useState([]);
+  const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
   const { creatorName } = useCreators(allDecks);
 
   useEffect(() => {
     (async () => {
       try {
-        const [decks, sess] = await Promise.all([
+        const [decks, sess, myMemberships] = await Promise.all([
           base44.entities.Deck.list("-created_date", 100),
           base44.entities.StudySession.list("-created_date", 100).catch(() => []),
+          base44.entities.ClassroomMembership.filter({ student_email: user?.email, status: "joined" }).catch(() => []),
         ]);
         setAllDecks(decks);
         setSessions(sess);
+        setMemberships(myMemberships);
         const c = {};
         await Promise.all(
           decks.map(async (d) => {
@@ -57,12 +60,13 @@ export default function Home() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [user?.email]);
 
   const mine = allDecks.filter((d) => d.created_by_id === user?.id);
   const pub = allDecks.filter((d) => d.is_public && d.created_by_id !== user?.id);
+  const joinedClassroomIds = new Set(memberships.map((m) => m.classroom_id));
   const classroomDecks = allDecks.filter(
-    (d) => d.classroom_id && d.created_by_id !== user?.id
+    (d) => d.classroom_id && d.created_by_id !== user?.id && joinedClassroomIds.has(d.classroom_id)
   );
 
   const matches = (d) =>
