@@ -155,6 +155,7 @@ export default function DeckDetail() {
               { mode: "flashcards", label: "Flashcards" },
               { mode: "quiz", label: "Quiz" },
               { mode: "type", label: "Type" },
+              { mode: "test", label: "Test" },
             ].map((m) => (
               <Link
                 key={m.mode}

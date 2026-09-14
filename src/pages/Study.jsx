@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import FlashcardMode from "@/components/study/FlashcardMode";
 import QuizMode from "@/components/study/QuizMode";
 import TypeMode from "@/components/study/TypeMode";
+import TestMode from "@/components/study/TestMode";
 
 export default function Study() {
   const { id, mode } = useParams();
@@ -83,7 +84,7 @@ export default function Study() {
               ← {deck.title}
             </Link>
             <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              {mode === "quiz" ? "Quiz mode" : "Type mode"}
+              {mode === "quiz" ? "Quiz mode" : mode === "test" ? "Test mode" : "Type mode"}
             </span>
           </div>
         </header>
@@ -92,7 +93,7 @@ export default function Study() {
             <Lock className="w-8 h-8 text-primary mx-auto mb-4" />
             <h2 className="font-display text-2xl text-foreground">Sign in to continue</h2>
             <p className="mt-2 font-body text-sm text-muted-foreground">
-              {mode === "quiz" ? "Quiz" : "Type"} mode is available once you sign in. Flashcard mode is free to practice.
+              {mode === "quiz" ? "Quiz" : mode === "test" ? "Test" : "Type"} mode is available once you sign in. Flashcard mode is free to practice.
             </p>
             <Link
               to={`/login?returnTo=${encodeURIComponent(`/study/${id}/${mode}`)}`}
@@ -109,7 +110,7 @@ export default function Study() {
     );
   }
 
-  const Mode = mode === "quiz" ? QuizMode : mode === "type" ? TypeMode : FlashcardMode;
+  const Mode = mode === "quiz" ? QuizMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : FlashcardMode;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -119,7 +120,7 @@ export default function Study() {
             ← {deck.title}
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-            {mode === "quiz" ? "Quiz mode" : mode === "type" ? "Type mode" : "Flashcard mode"}
+            {mode === "quiz" ? "Quiz mode" : mode === "type" ? "Type mode" : mode === "test" ? "Test mode" : "Flashcard mode"}
           </span>
         </div>
       </header>

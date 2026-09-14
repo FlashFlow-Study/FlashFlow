@@ -102,7 +102,7 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full max-w-xl mb-6 flex items-center justify-between">
+      <div className="w-full max-w-3xl mb-6 flex items-center justify-between">
         <ProgressGauge
           current={index + 1}
           total={activeCards.length}
@@ -123,7 +123,7 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
       )}
 
       <div
-        className="w-full max-w-xl h-80 cursor-pointer select-none"
+        className="w-full max-w-3xl h-[28rem] cursor-pointer select-none"
         style={{ perspective: "1200px" }}
         onClick={() => setFlipped((f) => !f)}
       >
@@ -140,7 +140,7 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
               Term
             </span>
-            <p className="font-display text-3xl leading-snug text-foreground">{card.front}</p>
+            <p className="font-display text-4xl leading-snug text-foreground">{card.front}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               <RotateCw className="w-3 h-3" /> Click to flip
             </span>
@@ -152,7 +152,7 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
             <span className="text-[10px] font-mono uppercase tracking-widest opacity-70 mb-4">
               Definition
             </span>
-            <p className="font-display text-2xl leading-snug">{card.back}</p>
+            <p className="font-display text-3xl leading-snug">{card.back}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest opacity-70">
               <RotateCw className="w-3 h-3" /> Click to flip back
             </span>
