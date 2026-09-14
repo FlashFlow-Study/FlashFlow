@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Outlet, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { Search, Plus, Layers, Library as LibraryIcon, User, Info, Mail } from "lucide-react";
+import { Search, Plus, Layers, User, FolderOpen } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 function NavItem({ to, icon: Icon, label, active }) {
@@ -26,7 +26,7 @@ export default function AppLayout() {
 
   const onSearch = (e) => {
     const val = e.target.value;
-    navigate(val ? `/?q=${encodeURIComponent(val)}` : "/", { replace: true });
+    navigate(val ? `/search?q=${encodeURIComponent(val)}` : "/search", { replace: true });
   };
 
   const initial = (user?.full_name || user?.email || "?").charAt(0).toUpperCase();
@@ -50,18 +50,18 @@ export default function AppLayout() {
             </div>
           </div>
           <div className="flex-1 md:flex-none" />
-          <Link
-            to="/about"
-            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
-          >
-            <Info className="w-3.5 h-3.5" /> About
-          </Link>
-          <Link
-            to="/contact"
-            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
-          >
-            <Mail className="w-3.5 h-3.5" /> Contact
-          </Link>
+          {user && (
+            <Link
+              to="/my-decks"
+              className={`hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border font-mono text-[11px] uppercase tracking-widest transition-colors rounded-md ${
+                location.pathname === "/my-decks"
+                  ? "border-primary text-primary"
+                  : "border-blue-200 dark:border-blue-800 text-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              <FolderOpen className="w-3.5 h-3.5" /> My Decks
+            </Link>
+          )}
           <Link
             to="/create?import=1"
             className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
@@ -113,11 +113,11 @@ export default function AppLayout() {
         </div>
       </footer>
 
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-slate-200">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-blue-100 dark:border-blue-900/50">
         <div className="grid grid-cols-4">
           <NavItem to="/" icon={Layers} label="Decks" active={location.pathname === "/"} />
-          <NavItem to="/#library" icon={LibraryIcon} label="Library" active={location.hash === "#library"} />
-          <NavItem to="/create?import=1" icon={Plus} label="Import" active={location.pathname === "/create"} />
+          <NavItem to="/search" icon={Search} label="Search" active={location.pathname === "/search"} />
+          <NavItem to={user ? "/my-decks" : "/create?import=1"} icon={user ? FolderOpen : Plus} label={user ? "My Decks" : "Import"} active={location.pathname === "/my-decks" || location.pathname === "/create"} />
           <NavItem to={user ? "/account" : "/login"} icon={User} label={user ? "Profile" : "Sign in"} active={location.pathname === "/account"} />
         </div>
       </nav>

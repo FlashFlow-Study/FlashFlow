@@ -14,6 +14,9 @@ import Study from './pages/Study';
 import Account from './pages/Account';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import EditDeck from './pages/EditDeck';
+import Search from './pages/Search';
+import MyDecks from './pages/MyDecks';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -55,9 +58,12 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/deck/:id" element={<DeckDetail />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           <Route path="/create" element={<CreateDeck />} />
+          <Route path="/edit/:id" element={<EditDeck />} />
+          <Route path="/my-decks" element={<MyDecks />} />
           <Route path="/account" element={<Account />} />
         </Route>
       </Route>

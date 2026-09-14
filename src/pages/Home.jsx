@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import DeckCard from "@/components/DeckCard";
 import StatCard from "@/components/StatCard";
+import { useCreators } from "@/hooks/useCreators";
 
 function computeStreak(sessions) {
   const days = [...new Set(sessions.map((s) => new Date(s.created_date).toISOString().slice(0, 10)))]
@@ -33,6 +34,7 @@ export default function Home() {
   const [counts, setCounts] = useState({});
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { creatorName } = useCreators(allDecks);
 
   useEffect(() => {
     (async () => {
@@ -92,7 +94,7 @@ export default function Home() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="border border-slate-200 bg-card rounded-md p-6 md:p-10"
+        className="border border-blue-100 dark:border-blue-900/40 bg-gradient-to-br from-blue-50 via-card to-indigo-50/50 dark:from-blue-950/20 dark:via-card dark:to-indigo-950/20 rounded-xl p-6 md:p-10 shadow-sm"
       >
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           Welcome back
@@ -149,6 +151,11 @@ export default function Home() {
                 {mineFiltered.length} {mineFiltered.length === 1 ? "deck" : "decks"}
               </p>
             </div>
+            {mineFiltered.length > 0 && (
+              <Link to="/my-decks" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline">
+                View all →
+              </Link>
+            )}
           </div>
           {loading ? (
             <div className="py-16 text-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
@@ -219,6 +226,7 @@ export default function Home() {
                   index={i}
                   cardCount={counts[d.id]}
                   lastStudied={lastStudied[d.id]}
+                  creatorName={creatorName(d)}
                   compact
                 />
               ))}

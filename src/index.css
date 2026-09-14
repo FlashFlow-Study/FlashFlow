@@ -12,13 +12,13 @@
     --card-foreground: 244 47% 34%;
     --popover: 0 0% 100%;
     --popover-foreground: 244 47% 34%;
-    --primary: 243 75% 59%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
     --secondary: 214 32% 95%;
     --secondary-foreground: 244 47% 34%;
     --muted: 214 32% 95%;
     --muted-foreground: 215 16% 47%;
-    --accent: 243 75% 59%;
+    --accent: 221 83% 53%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
@@ -26,7 +26,7 @@
     --positive-foreground: 0 0% 100%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 243 75% 59%;
+    --ring: 221 83% 53%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -54,13 +54,13 @@
     --card-foreground: 0 0% 98%;
     --popover: 244 47% 11%;
     --popover-foreground: 0 0% 98%;
-    --primary: 243 75% 69%;
+    --primary: 217 91% 60%;
     --primary-foreground: 244 47% 8%;
     --secondary: 244 30% 18%;
     --secondary-foreground: 0 0% 98%;
     --muted: 244 30% 18%;
     --muted-foreground: 215 20% 65%;
-    --accent: 243 75% 69%;
+    --accent: 217 91% 60%;
     --accent-foreground: 244 47% 8%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
@@ -68,7 +68,7 @@
     --positive-foreground: 244 47% 8%;
     --border: 244 30% 22%;
     --input: 244 30% 22%;
-    --ring: 243 75% 69%;
+    --ring: 217 91% 60%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -93,8 +93,8 @@
   body {
     @apply bg-background text-foreground font-body;
     background-image:
-      linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+      linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 }

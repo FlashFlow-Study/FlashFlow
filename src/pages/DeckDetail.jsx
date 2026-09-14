@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Layers, Globe, Lock, Trash2, Play } from "lucide-react";
+import { Layers, Globe, Lock, Trash2, Play, Pencil, User } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ExportMenu from "@/components/ExportMenu";
 import { useAuth } from "@/lib/AuthContext";
+import { useCreators } from "@/hooks/useCreators";
 
 export default function DeckDetail() {
   const { id } = useParams();
@@ -14,6 +15,7 @@ export default function DeckDetail() {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [flippedIndex, setFlippedIndex] = useState(null);
+  const { creatorName } = useCreators(deck ? [deck] : []);
 
   useEffect(() => {
     (async () => {
@@ -67,14 +69,20 @@ export default function DeckDetail() {
         <div className="mt-6 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <span
-              className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-1 border ${
-                deck.is_public ? "border-primary/30 text-primary" : "border-border text-muted-foreground"
+              className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-1 border rounded-md ${
+                deck.is_public ? "border-blue-200 dark:border-blue-800 text-primary bg-blue-50 dark:bg-blue-950/30" : "border-border text-muted-foreground"
               }`}
             >
               {deck.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
               {deck.is_public ? "Public" : "Private"}
             </span>
             <h1 className="font-display text-5xl text-foreground mt-3 tracking-tight">{deck.title}</h1>
+            {creatorName(deck) && (
+              <div className="mt-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+                <User className="w-3.5 h-3.5 text-blue-500" />
+                Created by <span className="text-foreground">{creatorName(deck)}</span>
+              </div>
+            )}
             {deck.description && (
               <p className="mt-3 font-body text-sm text-muted-foreground max-w-lg">{deck.description}</p>
             )}
@@ -117,9 +125,15 @@ export default function DeckDetail() {
           <ExportMenu deck={deck} cards={cards} />
           {deck.created_by_id === user?.id && (
             <>
+              <Link
+                to={`/edit/${id}`}
+                className="inline-flex items-center px-4 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md shadow-sm shadow-primary/20"
+              >
+                <Pencil className="w-3.5 h-3.5 inline mr-1.5" /> Edit
+              </Link>
               <button
                 onClick={togglePublic}
-                className="px-4 py-2.5 border border-slate-200 font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
+                className="px-4 py-2.5 border border-blue-200 dark:border-blue-800 font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
               >
                 Make {deck.is_public ? "private" : "public"}
               </button>

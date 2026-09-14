@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Globe, Lock, Layers } from "lucide-react";
+import { Globe, Lock, Layers, User } from "lucide-react";
 
 function relativeDate(iso) {
   if (!iso) return null;
@@ -15,7 +15,7 @@ function relativeDate(iso) {
   return `${Math.floor(d / 30)}mo ago`;
 }
 
-export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact }) {
+export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact, creatorName }) {
   const studied = relativeDate(lastStudied);
   return (
     <motion.div
@@ -26,7 +26,7 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
     >
       <Link
         to={`/deck/${deck.id}`}
-        className={`group block h-full bg-card border border-slate-200 transition-colors hover:border-primary rounded-md ${
+        className={`group block h-full bg-card border border-blue-100 dark:border-blue-900/40 transition-all hover:border-primary hover:shadow-md hover:shadow-blue-100 dark:hover:shadow-blue-950/30 rounded-xl ${
           compact ? "p-4" : "p-6"
         }`}
       >
@@ -52,7 +52,7 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
         ) : (
           <p className="mt-3 text-sm font-body text-muted-foreground italic">No description</p>
         )}
-        <div className={`mt-5 flex items-center justify-between border-t border-slate-200 pt-4 ${compact ? "mt-3 pt-3" : ""}`}>
+        <div className={`mt-5 flex items-center justify-between border-t border-blue-100 dark:border-blue-900/40 pt-4 ${compact ? "mt-3 pt-3" : ""}`}>
           <span className="inline-flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
             <Layers className="w-3.5 h-3.5" />
             {cardCount ?? "—"} cards
@@ -63,6 +63,12 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
             </span>
           )}
         </div>
+        {creatorName && (
+          <div className={`flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground ${compact ? "mt-2" : "mt-3"}`}>
+            <User className="w-3 h-3 text-blue-500" />
+            by {creatorName}
+          </div>
+        )}
       </Link>
     </motion.div>
   );
