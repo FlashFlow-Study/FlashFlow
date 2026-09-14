@@ -1,0 +1,27 @@
+{
+  "name": "UserCardStar",
+  "type": "object",
+  "properties": {
+    "card_id": {
+      "type": "string"
+    },
+    "deck_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "card_id",
+    "deck_id"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
