@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 import DeckCard from "@/components/DeckCard";
 import StatCard from "@/components/StatCard";
 import { useCreators } from "@/hooks/useCreators";
+import { getRecentDeckIds } from "@/lib/recentDecks";
 
 export default function Home() {
   const { user } = useAuth();
@@ -16,20 +17,24 @@ export default function Home() {
   const [counts, setCounts] = useState({});
   const [sessions, setSessions] = useState([]);
   const [memberships, setMemberships] = useState([]);
+  const [ownedClassrooms, setOwnedClassrooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [recentIds] = useState(() => getRecentDeckIds());
   const { creatorName } = useCreators(allDecks);
 
   useEffect(() => {
     (async () => {
       try {
-        const [decks, sess, myMemberships] = await Promise.all([
+        const [decks, sess, myMemberships, myClassrooms] = await Promise.all([
           base44.entities.Deck.list("-created_date", 100),
           base44.entities.StudySession.list("-created_date", 100).catch(() => []),
-          base44.entities.ClassroomMembership.filter({ student_email: user?.email, status: "joined" }).catch(() => []),
+          base44.entities.ClassroomMembership.filter({ student_email: user?.email }).catch(() => []),
+          base44.entities.Classroom.filter({ created_by_id: user?.id }).catch(() => []),
         ]);
         setAllDecks(decks);
         setSessions(sess);
         setMemberships(myMemberships);
+        setOwnedClassrooms(myClassrooms);
         const c = {};
         await Promise.all(
           decks.map(async (d) => {
@@ -46,9 +51,12 @@ export default function Home() {
 
   const mine = allDecks.filter((d) => d.created_by_id === user?.id);
   const pub = allDecks.filter((d) => d.is_public && d.created_by_id !== user?.id);
-  const joinedClassroomIds = new Set(memberships.map((m) => m.classroom_id));
+  const userClassroomIds = new Set([
+    ...ownedClassrooms.map((c) => c.id),
+    ...memberships.map((m) => m.classroom_id),
+  ]);
   const classroomDecks = allDecks.filter(
-    (d) => d.classroom_id && d.created_by_id !== user?.id && joinedClassroomIds.has(d.classroom_id)
+    (d) => d.classroom_id && d.created_by_id !== user?.id && userClassroomIds.has(d.classroom_id)
   );
 
   const matches = (d) =>
@@ -63,9 +71,9 @@ export default function Home() {
     if (!lastStudied[s.deck_id]) lastStudied[s.deck_id] = s.created_date;
   });
 
-  const recentDecks = allDecks
-    .filter((d) => lastStudied[d.id])
-    .sort((a, b) => new Date(lastStudied[b.id]) - new Date(lastStudied[a.id]))
+  const recentDecks = recentIds
+    .map((rid) => allDecks.find((d) => d.id === rid))
+    .filter(Boolean)
     .slice(0, 4);
 
   const cardsStudied = sessions.reduce((sum, s) => sum + (s.cards_studied || 0), 0);
@@ -273,7 +281,7 @@ export default function Home() {
       )}
 
       {/* Join a class prompt */}
-      {classroomDecks.length === 0 && user && (
+      {userClassroomIds.size === 0 && user && (
         <section className="mt-8 p-6 border border-dashed border-blue-200 dark:border-blue-800 rounded-md flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

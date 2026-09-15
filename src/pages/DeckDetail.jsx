@@ -7,6 +7,7 @@ import ExportMenu from "@/components/ExportMenu";
 import StarToggle from "@/components/StarToggle";
 import { useAuth } from "@/lib/AuthContext";
 import { useCreators } from "@/hooks/useCreators";
+import { addRecentDeck } from "@/lib/recentDecks";
 
 export default function DeckDetail() {
   const { id } = useParams();
@@ -26,6 +27,7 @@ export default function DeckDetail() {
       try {
         const d = await base44.entities.Deck.get(id);
         setDeck(d);
+        addRecentDeck(id);
         const [c, stars] = await Promise.all([
           base44.entities.Card.filter({ deck_id: id }, "order", 100),
           base44.entities.UserCardStar.filter({ deck_id: id }).catch(() => []),
