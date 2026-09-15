@@ -5,6 +5,7 @@ import { Plus, Trash2, Sparkles, Loader2, Upload } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import ImportPanel from "@/components/ImportPanel";
+import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 
 export default function CreateDeck() {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ export default function CreateDeck() {
   const [isTwoLanguages, setIsTwoLanguages] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [folders, setFolders] = useState([]);
+  const activeInputRef = React.useRef(null);
 
   useEffect(() => {
     if (user?.is_teacher) {
@@ -328,6 +330,12 @@ export default function CreateDeck() {
                 Cards ({cards.length})
               </span>
             </div>
+            <div className="p-3 border border-blue-100 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20 rounded-md">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
+                Special characters — click to insert into the active field
+              </p>
+              <SpecialCharToolbar activeInputRef={activeInputRef} />
+            </div>
             {cards.map((card, i) => (
               <motion.div
                 key={i}
@@ -342,12 +350,14 @@ export default function CreateDeck() {
                     <input
                       value={card.front}
                       onChange={(e) => updateCard(i, "front", e.target.value)}
+                      onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "front", v) }; }}
                       placeholder="Front (term)"
                       className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary"
                     />
                     <input
                       value={card.back}
                       onChange={(e) => updateCard(i, "back", e.target.value)}
+                      onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "back", v) }; }}
                       placeholder="Back (definition)"
                       className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary"
                     />
