@@ -8,24 +8,6 @@ import DeckCard from "@/components/DeckCard";
 import StatCard from "@/components/StatCard";
 import { useCreators } from "@/hooks/useCreators";
 
-function computeStreak(sessions) {
-  const days = [...new Set(sessions.map((s) => new Date(s.created_date).toISOString().slice(0, 10)))]
-    .sort()
-    .reverse();
-  if (!days.length) return 0;
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  if (days[0] !== today && days[0] !== yesterday) return 0;
-  let streak = 1;
-  for (let i = 1; i < days.length; i++) {
-    const prev = new Date(days[i - 1]);
-    const cur = new Date(days[i]);
-    if (prev - cur === 86400000) streak++;
-    else break;
-  }
-  return streak;
-}
-
 export default function Home() {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
@@ -83,7 +65,6 @@ export default function Home() {
 
   const cardsStudied = sessions.reduce((sum, s) => sum + (s.cards_studied || 0), 0);
   const decksCreated = mine.length;
-  const activeStreak = computeStreak(sessions);
 
   const setQuery = (val) => {
     const next = new URLSearchParams(params);
@@ -129,10 +110,9 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="mt-7 flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
+        <div className="mt-7 flex md:grid md:grid-cols-2 gap-4 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
           <StatCard label="Cards studied" value={loading ? "—" : cardsStudied} index={0} accent="text-positive" />
           <StatCard label="Decks created" value={loading ? "—" : decksCreated} index={1} />
-          <StatCard label="Active streak" value={loading ? "—" : `${activeStreak}d`} index={2} accent="text-primary" />
         </div>
       </motion.section>
 
