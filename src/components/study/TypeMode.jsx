@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
+import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -38,6 +39,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
   const [value, setValue] = useState("");
   const [checked, setChecked] = useState(false);
   const [score, setScore] = useState(0);
+  const activeInputRef = useRef(null);
 
   const card = cards[index];
   const correct = checked && isAnswerCorrect(value, card.back, isTwoLanguages);
@@ -93,6 +95,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
           autoFocus
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: setValue }; }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !checked) check();
             if (e.key === "Enter" && checked) next();
@@ -107,6 +110,15 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
               : "border-border focus:border-primary"
           }`}
         />
+
+        {!checked && (
+          <div className="mt-3 p-3 border border-blue-100 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20 rounded-md">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
+              Special characters
+            </p>
+            <SpecialCharToolbar activeInputRef={activeInputRef} />
+          </div>
+        )}
 
         {checked && (
           <motion.div
@@ -124,12 +136,10 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
                 {correct ? "Correct" : "Not quite"}
               </span>
             </div>
-            {!correct && (
-              <p className="font-body text-sm text-foreground">
-                <span className="text-muted-foreground">Answer: </span>
-                {card.back}
-              </p>
-            )}
+            <p className="font-body text-sm text-foreground">
+              <span className="text-muted-foreground">Answer: </span>
+              {card.back}
+            </p>
           </motion.div>
         )}
 

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Check, X, Minus, ArrowRight } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
+import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -24,6 +25,7 @@ export default function TestMode({ cards, onExit, onComplete }) {
   const [answers, setAnswers] = useState([]);
   const [value, setValue] = useState("");
   const [testCards, setTestCards] = useState([]);
+  const activeInputRef = useRef(null);
 
   const start = () => {
     const count = Math.min(questionCount, cards.length);
@@ -198,12 +200,20 @@ export default function TestMode({ cards, onExit, onComplete }) {
           autoFocus
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: setValue }; }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && value.trim()) submitQuestion();
           }}
           placeholder="Type the definition…"
           className="w-full px-4 py-3 bg-card border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
         />
+
+        <div className="mt-3 p-3 border border-blue-100 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20 rounded-md">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
+            Special characters
+          </p>
+          <SpecialCharToolbar activeInputRef={activeInputRef} />
+        </div>
 
         <button
           onClick={submitQuestion}
