@@ -13,8 +13,11 @@ export function useCreators(decks) {
     let cancelled = false;
     (async () => {
       try {
-        const res = await base44.functions.invoke("getCreatorsInfo", { user_ids: userIds });
-        if (!cancelled) setCreators(res.data?.creators || {});
+        const profiles = await base44.entities.Profile.filter({ user_id: { $in: userIds } });
+        if (cancelled) return;
+        const map = {};
+        profiles.forEach((p) => { map[p.user_id] = p; });
+        setCreators(map);
       } catch {
         // ignore — creator names simply won't show
       }
@@ -26,7 +29,7 @@ export function useCreators(decks) {
     if (!deck?.created_by_id) return null;
     const c = creators[deck.created_by_id];
     if (!c) return null;
-    return c.full_name || (c.email ? c.email.split("@")[0] : null);
+    return c.full_name || null;
   };
 
   return { creators, creatorName };

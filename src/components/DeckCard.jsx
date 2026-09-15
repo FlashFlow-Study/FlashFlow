@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Globe, Lock, Layers, User, School } from "lucide-react";
 
@@ -16,6 +16,7 @@ function relativeDate(iso) {
 }
 
 export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact, creatorName }) {
+  const navigate = useNavigate();
   const studied = relativeDate(lastStudied);
   return (
     <motion.div
@@ -66,10 +67,17 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
           )}
         </div>
         {creatorName && (
-          <div className={`flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground ${compact ? "mt-2" : "mt-3"}`}>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(`/profile/${deck.created_by_id}`);
+            }}
+            className={`flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground hover:text-primary transition-colors ${compact ? "mt-2" : "mt-3"}`}
+          >
             <User className="w-3 h-3 text-blue-500" />
             by {creatorName}
-          </div>
+          </button>
         )}
       </Link>
     </motion.div>

@@ -38,6 +38,18 @@ export default function Account() {
         ]);
         setSessions(sess);
         setDecksCreated(decks.filter((d) => d.created_by_id === user?.id).length);
+        if (user?.id) {
+          try {
+            const existing = await base44.entities.Profile.filter({ user_id: user.id });
+            const name = user.full_name || "";
+            const isTeacher = !!user?.data?.is_teacher;
+            if (existing.length === 0) {
+              await base44.entities.Profile.create({ user_id: user.id, full_name: name, is_teacher: isTeacher });
+            } else if (existing[0].full_name !== name || existing[0].is_teacher !== isTeacher) {
+              await base44.entities.Profile.update(existing[0].id, { full_name: name, is_teacher: isTeacher });
+            }
+          } catch { /* ignore */ }
+        }
       } catch {
         /* ignore */
       } finally {
@@ -53,6 +65,14 @@ export default function Account() {
     setError("");
     try {
       await base44.auth.updateMe({ full_name: name.trim() });
+      try {
+        const existing = await base44.entities.Profile.filter({ user_id: user.id });
+        if (existing.length > 0) {
+          await base44.entities.Profile.update(existing[0].id, { full_name: name.trim() });
+        } else {
+          await base44.entities.Profile.create({ user_id: user.id, full_name: name.trim(), is_teacher: !!user?.data?.is_teacher });
+        }
+      } catch { /* ignore */ }
       setNameSaved(true);
       setTimeout(() => setNameSaved(false), 2000);
     } catch (e) {
@@ -66,7 +86,16 @@ export default function Account() {
     setTogglingTeacher(true);
     setError("");
     try {
-      await base44.auth.updateMe({ is_teacher: !user?.data?.is_teacher });
+      const newTeacher = !user?.data?.is_teacher;
+      await base44.auth.updateMe({ is_teacher: newTeacher });
+      try {
+        const existing = await base44.entities.Profile.filter({ user_id: user.id });
+        if (existing.length > 0) {
+          await base44.entities.Profile.update(existing[0].id, { is_teacher: newTeacher });
+        } else {
+          await base44.entities.Profile.create({ user_id: user.id, full_name: user.full_name || "", is_teacher: newTeacher });
+        }
+      } catch { /* ignore */ }
       window.location.reload();
     } catch (e) {
       setError(e.response?.data?.error || "Couldn't update teacher mode.");

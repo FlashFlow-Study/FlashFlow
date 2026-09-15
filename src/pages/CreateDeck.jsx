@@ -26,6 +26,9 @@ export default function CreateDeck() {
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [isTwoLanguages, setIsTwoLanguages] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState("");
+  const [folders, setFolders] = useState([]);
 
   useEffect(() => {
     if (user?.data?.is_teacher) {
@@ -33,6 +36,9 @@ export default function CreateDeck() {
         .then((list) => setClassrooms(list.filter((c) => c.created_by_id === user.id)))
         .catch(() => {});
     }
+    base44.entities.Folder.list("-created_date", 100)
+      .then((list) => setFolders(list))
+      .catch(() => {});
   }, [user?.id]);
 
   const handleImport = (result) => {
@@ -108,6 +114,8 @@ export default function CreateDeck() {
         classroom_id: selectedClassroom || undefined,
         classroom_name: classroomName,
         classroom_members: classroomMembers,
+        is_two_languages: isTwoLanguages,
+        folder_id: selectedFolder || undefined,
       });
       await base44.entities.Card.bulkCreate(
         valid.map((c, i) => ({
@@ -237,6 +245,38 @@ export default function CreateDeck() {
               )}
             </div>
           )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Folder</label>
+              <select
+                value={selectedFolder}
+                onChange={(e) => setSelectedFolder(e.target.value)}
+                className="w-full mt-1 px-4 py-3 bg-card border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+              >
+                <option value="">No folder</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Two languages?</label>
+              <button
+                onClick={() => setIsTwoLanguages((v) => !v)}
+                className="w-full mt-1 px-4 py-3 bg-card border border-border font-mono text-xs uppercase tracking-widest flex items-center justify-between hover:border-primary transition-colors rounded-md"
+              >
+                <span className={isTwoLanguages ? "text-primary" : "text-muted-foreground"}>
+                  {isTwoLanguages ? "Yes" : "No"}
+                </span>
+                <span className={`w-10 h-5 rounded-full relative transition-colors ${isTwoLanguages ? "bg-primary" : "bg-border"}`}>
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${isTwoLanguages ? "left-5" : "left-0.5"}`} />
+                </span>
+              </button>
+              <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
+                If yes, Type mode requires exact spelling.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* AI mode */}

@@ -125,7 +125,7 @@ export default function Study() {
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <Mode cards={cards} onExit={() => (window.location.href = `/deck/${id}`)} onComplete={handleComplete} />
+        <Mode cards={cards} onExit={() => (window.location.href = `/deck/${id}`)} onComplete={handleComplete} isTwoLanguages={deck.is_two_languages} />
       </main>
     </div>
   );

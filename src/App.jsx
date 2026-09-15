@@ -20,6 +20,7 @@ import MyDecks from './pages/MyDecks';
 import Classrooms from './pages/Classrooms';
 import ClassroomDetail from './pages/ClassroomDetail';
 import Join from './pages/Join';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/search" element={<Search />} />
         <Route path="/deck/:id" element={<DeckDetail />} />
+        <Route path="/profile/:userId" element={<Profile />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           <Route path="/create" element={<CreateDeck />} />
           <Route path="/edit/:id" element={<EditDeck />} />

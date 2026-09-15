@@ -110,10 +110,13 @@ export default function DeckDetail() {
             )}
             <h1 className="font-display text-5xl text-foreground mt-3 tracking-tight">{deck.title}</h1>
             {creatorName(deck) && (
-              <div className="mt-2 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+              <Link
+                to={`/profile/${deck.created_by_id}`}
+                className="mt-2 inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
                 <User className="w-3.5 h-3.5 text-blue-500" />
                 Created by <span className="text-foreground">{creatorName(deck)}</span>
-              </div>
+              </Link>
             )}
             {deck.description && (
               <p className="mt-3 font-body text-sm text-muted-foreground max-w-lg">{deck.description}</p>

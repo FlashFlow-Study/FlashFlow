@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { Search as SearchIcon, Loader2 } from "lucide-react";
+import { useSearchParams, Link } from "react-router-dom";
+import { Search as SearchIcon, Loader2, GraduationCap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import DeckCard from "@/components/DeckCard";
 import { useCreators } from "@/hooks/useCreators";
@@ -10,6 +10,7 @@ export default function Search() {
   const query = params.get("q") || "";
   const [decks, setDecks] = useState([]);
   const [counts, setCounts] = useState({});
+  const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { creatorName } = useCreators(decks);
 
@@ -20,6 +21,8 @@ export default function Search() {
         const all = await base44.entities.Deck.list("-created_date", 200);
         const publicDecks = all.filter((d) => d.is_public);
         setDecks(publicDecks);
+        const allProfiles = await base44.entities.Profile.list("-created_date", 200).catch(() => []);
+        setProfiles(allProfiles);
         const c = {};
         await Promise.all(
           publicDecks.map(async (d) => {
@@ -54,6 +57,9 @@ export default function Search() {
   };
 
   const filtered = decks.filter(matches);
+  const matchingProfiles = query
+    ? profiles.filter((p) => (p.full_name || "").toLowerCase().includes(query.toLowerCase()))
+    : [];
   const allTags = [...new Set(decks.flatMap((d) => d.tags || []))].sort();
 
   return (
@@ -100,6 +106,33 @@ export default function Search() {
           {loading ? "Searching…" : `${filtered.length} ${filtered.length === 1 ? "result" : "results"}`}
         </p>
       </div>
+
+      {!loading && matchingProfiles.length > 0 && (
+        <section className="mt-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">Users</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {matchingProfiles.map((p) => (
+              <Link
+                key={p.id}
+                to={`/profile/${p.user_id}`}
+                className="p-4 border border-border bg-card hover:border-primary transition-colors rounded-lg flex items-center gap-3"
+              >
+                <span className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-display text-sm font-bold shrink-0">
+                  {(p.full_name || "?").charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-display text-base text-foreground truncate">{p.full_name || "Unknown"}</p>
+                  {p.is_teacher && (
+                    <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-indigo-500">
+                      <GraduationCap className="w-3 h-3" /> Teacher
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {loading ? (
         <div className="py-20 flex items-center justify-center">
