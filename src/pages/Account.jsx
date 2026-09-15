@@ -42,7 +42,7 @@ export default function Account() {
           try {
             const existing = await base44.entities.Profile.filter({ user_id: user.id });
             const name = user.full_name || "";
-            const isTeacher = !!user?.data?.is_teacher;
+            const isTeacher = !!user?.is_teacher;
             if (existing.length === 0) {
               await base44.entities.Profile.create({ user_id: user.id, full_name: name, is_teacher: isTeacher });
             } else if (existing[0].full_name !== name || existing[0].is_teacher !== isTeacher) {
@@ -70,7 +70,7 @@ export default function Account() {
         if (existing.length > 0) {
           await base44.entities.Profile.update(existing[0].id, { full_name: name.trim() });
         } else {
-          await base44.entities.Profile.create({ user_id: user.id, full_name: name.trim(), is_teacher: !!user?.data?.is_teacher });
+          await base44.entities.Profile.create({ user_id: user.id, full_name: name.trim(), is_teacher: !!user?.is_teacher });
         }
       } catch { /* ignore */ }
       setNameSaved(true);
@@ -86,7 +86,7 @@ export default function Account() {
     setTogglingTeacher(true);
     setError("");
     try {
-      const newTeacher = !user?.data?.is_teacher;
+      const newTeacher = !user?.is_teacher;
       await base44.auth.updateMe({ is_teacher: newTeacher });
       try {
         const existing = await base44.entities.Profile.filter({ user_id: user.id });
@@ -179,7 +179,7 @@ export default function Account() {
         <div className="mt-5 flex items-center justify-between gap-4">
           <div>
             <p className="font-display text-base text-foreground">
-              {user?.data?.is_teacher ? "Teacher mode is on" : "Teacher mode is off"}
+              {user?.is_teacher ? "Teacher mode is on" : "Teacher mode is off"}
             </p>
             <p className="font-mono text-xs text-muted-foreground">
               {user?.role === "admin" ? "Admin — always included" : "Toggle to manage classrooms"}
@@ -189,13 +189,13 @@ export default function Account() {
             onClick={toggleTeacherMode}
             disabled={togglingTeacher}
             className={`inline-flex items-center gap-2 px-5 py-2.5 font-mono text-xs uppercase tracking-widest transition-colors rounded-md disabled:opacity-40 ${
-              user?.data?.is_teacher
+              user?.is_teacher
                 ? "border border-border hover:border-primary"
                 : "bg-primary text-primary-foreground hover:opacity-90"
             }`}
           >
             {togglingTeacher ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-            {user?.data?.is_teacher ? "Turn off" : "Turn on"}
+            {user?.is_teacher ? "Turn off" : "Turn on"}
           </button>
         </div>
       </section>

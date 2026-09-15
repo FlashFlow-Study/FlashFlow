@@ -31,7 +31,7 @@ export default function CreateDeck() {
   const [folders, setFolders] = useState([]);
 
   useEffect(() => {
-    if (user?.data?.is_teacher) {
+    if (user?.is_teacher) {
       base44.entities.Classroom.list("-created_date", 100)
         .then((list) => setClassrooms(list.filter((c) => c.created_by_id === user.id)))
         .catch(() => {});

@@ -14,7 +14,7 @@ function generateCode() {
 
 export default function Classrooms() {
   const { user } = useAuth();
-  const isTeacher = user?.data?.is_teacher === true;
+  const isTeacher = user?.is_teacher === true;
   const [classrooms, setClassrooms] = useState([]);
   const [memberships, setMemberships] = useState([]);
   const [loading, setLoading] = useState(true);
