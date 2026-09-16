@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Users, KeyRound, Plus, Copy, Check, Loader2, Trash2, Mail,
@@ -22,6 +22,9 @@ export default function ClassroomDetail() {
   const [newEmails, setNewEmails] = useState("");
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
   const isTeacher = classroom?.created_by_id === user?.id;
 
@@ -100,6 +103,26 @@ export default function ClassroomDetail() {
       setCompletions((prev) => prev.filter((c) => c.assignment_id !== a.id));
     } catch {
       /* ignore */
+    }
+  };
+
+  const deleteClassroom = async () => {
+    setDeleting(true);
+    setError("");
+    try {
+      await base44.entities.ClassroomMembership.deleteMany({ classroom_id: id }).catch(() => {});
+      await base44.entities.AssignmentCompletion.deleteMany({ classroom_id: id }).catch(() => {});
+      await base44.entities.Assignment.deleteMany({ classroom_id: id }).catch(() => {});
+      await base44.entities.Deck.updateMany(
+        { classroom_id: id },
+        { $unset: { classroom_id: "", classroom_name: "", classroom_members: "" } }
+      ).catch(() => {});
+      await base44.entities.Classroom.delete(id);
+      navigate("/classrooms");
+    } catch (e) {
+      setError(e.response?.data?.error || "Couldn't delete the classroom.");
+      setDeleting(false);
+      setConfirmDelete(false);
     }
   };
 
@@ -336,6 +359,49 @@ export default function ClassroomDetail() {
               ))
             )}
           </div>
+        </section>
+      )}
+
+      {/* Danger zone — teacher only */}
+      {isTeacher && (
+        <section className="mt-10">
+          <h2 className="font-display text-2xl text-foreground">Danger zone</h2>
+          <div className="mt-4 p-5 border border-destructive/40 rounded-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p className="font-body text-sm text-foreground">Delete this classroom</p>
+              <p className="font-body text-xs text-muted-foreground mt-1">
+                Removes the class, its members, assignments and progress. Decks are kept but detached from the class.
+              </p>
+            </div>
+            {confirmDelete ? (
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-destructive">Are you sure?</span>
+                <button
+                  onClick={deleteClassroom}
+                  disabled={deleting}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-destructive text-destructive-foreground font-mono text-xs uppercase tracking-widest disabled:opacity-40 hover:opacity-90 transition-opacity rounded-md"
+                >
+                  {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  Yes, delete
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleting}
+                  className="px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-foreground transition-colors rounded-md"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 border border-destructive/50 text-destructive font-mono text-xs uppercase tracking-widest hover:bg-destructive hover:text-destructive-foreground transition-colors rounded-md shrink-0"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Delete classroom
+              </button>
+            )}
+          </div>
+          {error && <p className="mt-2 font-body text-sm text-destructive">{error}</p>}
         </section>
       )}
     </div>
