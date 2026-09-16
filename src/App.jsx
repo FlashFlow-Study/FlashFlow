@@ -20,6 +20,7 @@ import MyDecks from './pages/MyDecks';
 import Classrooms from './pages/Classrooms';
 import ClassroomDetail from './pages/ClassroomDetail';
 import Join from './pages/Join';
+import CreateAssignment from './pages/CreateAssignment';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
           <Route path="/classrooms" element={<Classrooms />} />
           <Route path="/classroom/:id" element={<ClassroomDetail />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/assign/:classroomId" element={<CreateAssignment />} />
           <Route path="/account" element={<Account />} />
         </Route>
       </Route>

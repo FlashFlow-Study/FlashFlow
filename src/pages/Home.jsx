@@ -8,6 +8,8 @@ import DeckCard from "@/components/DeckCard";
 import StatCard from "@/components/StatCard";
 import { useCreators } from "@/hooks/useCreators";
 import { getRecentDeckIds } from "@/lib/recentDecks";
+import AssignmentCard from "@/components/AssignmentCard";
+import { isCompleted } from "@/lib/assignments";
 
 export default function Home() {
   const { user } = useAuth();
@@ -18,6 +20,8 @@ export default function Home() {
   const [sessions, setSessions] = useState([]);
   const [memberships, setMemberships] = useState([]);
   const [ownedClassrooms, setOwnedClassrooms] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [completions, setCompletions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recentIds] = useState(() => getRecentDeckIds());
   const { creatorName } = useCreators(allDecks);
@@ -25,16 +29,20 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const [decks, sess, myMemberships, myClassrooms] = await Promise.all([
+        const [decks, sess, myMemberships, myClassrooms, myAssignments, myCompletions] = await Promise.all([
           base44.entities.Deck.list("-created_date", 100),
           base44.entities.StudySession.list("-created_date", 100).catch(() => []),
           base44.entities.ClassroomMembership.filter({ student_email: user?.email }).catch(() => []),
           base44.entities.Classroom.filter({ created_by_id: user?.id }).catch(() => []),
+          base44.entities.Assignment.list("-created_date", 100).catch(() => []),
+          base44.entities.AssignmentCompletion.filter({ student_email: user?.email }).catch(() => []),
         ]);
         setAllDecks(decks);
         setSessions(sess);
         setMemberships(myMemberships);
         setOwnedClassrooms(myClassrooms);
+        setAssignments(myAssignments);
+        setCompletions(myCompletions);
         const c = {};
         await Promise.all(
           decks.map(async (d) => {
@@ -58,6 +66,16 @@ export default function Home() {
   const classroomDecks = allDecks.filter(
     (d) => d.classroom_id && d.created_by_id !== user?.id && userClassroomIds.has(d.classroom_id)
   );
+  const myAssignments = assignments
+    .filter(
+      (a) =>
+        userClassroomIds.has(a.classroom_id) && a.created_by_id !== user?.id
+    )
+    .sort((a, b) => {
+      const ac = completions.find((c) => c.assignment_id === a.id);
+      const bc = completions.find((c) => c.assignment_id === b.id);
+      return isCompleted(ac) - isCompleted(bc);
+    });
 
   const matches = (d) =>
     !query ||
@@ -161,6 +179,31 @@ export default function Home() {
                 compact
               />
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Your assignments */}
+      {!query && myAssignments.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-5">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Your Assignments</h2>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
+              Assigned by your teachers
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {myAssignments.slice(0, 4).map((a, i) => {
+              const comp = completions.find((c) => c.assignment_id === a.id);
+              return (
+                <AssignmentCard
+                  key={a.id}
+                  assignment={a}
+                  index={i}
+                  completion={comp}
+                />
+              );
+            })}
           </div>
         </section>
       )}

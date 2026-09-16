@@ -17,8 +17,10 @@ function shuffle(arr) {
   return a;
 }
 
-export default function TestMode({ cards, onExit, onComplete }) {
-  const defaultCount = Math.min(20, cards.length);
+export default function TestMode({ cards, onExit, onComplete, assignedCount }) {
+  const defaultCount = assignedCount
+    ? Math.min(assignedCount, cards.length)
+    : Math.min(20, cards.length);
   const [phase, setPhase] = useState("setup");
   const [questionCount, setQuestionCount] = useState(defaultCount);
   const [index, setIndex] = useState(0);
@@ -26,6 +28,7 @@ export default function TestMode({ cards, onExit, onComplete }) {
   const [value, setValue] = useState("");
   const [testCards, setTestCards] = useState([]);
   const activeInputRef = useRef(null);
+  const locked = !!assignedCount;
 
   const start = () => {
     const count = Math.min(questionCount, cards.length);
@@ -67,7 +70,8 @@ export default function TestMode({ cards, onExit, onComplete }) {
           <div className="mt-3 flex items-center justify-center gap-4">
             <button
               onClick={() => setQuestionCount(Math.max(1, questionCount - 1))}
-              className="w-10 h-10 border border-border font-mono text-lg hover:border-primary transition-colors rounded-md"
+              disabled={locked}
+              className="w-10 h-10 border border-border font-mono text-lg hover:border-primary transition-colors rounded-md disabled:opacity-30 disabled:cursor-not-allowed"
             >
               −
             </button>
@@ -79,17 +83,19 @@ export default function TestMode({ cards, onExit, onComplete }) {
               }
               min={1}
               max={cards.length}
-              className="w-20 px-3 py-2.5 bg-card border border-border font-display text-2xl text-center focus:outline-none focus:border-primary rounded-md"
+              disabled={locked}
+              className="w-20 px-3 py-2.5 bg-card border border-border font-display text-2xl text-center focus:outline-none focus:border-primary rounded-md disabled:opacity-60"
             />
             <button
               onClick={() => setQuestionCount(Math.min(cards.length, questionCount + 1))}
-              className="w-10 h-10 border border-border font-mono text-lg hover:border-primary transition-colors rounded-md"
+              disabled={locked}
+              className="w-10 h-10 border border-border font-mono text-lg hover:border-primary transition-colors rounded-md disabled:opacity-30 disabled:cursor-not-allowed"
             >
               +
             </button>
           </div>
           <p className="mt-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Max {cards.length} {cards.length === 1 ? "card" : "cards"} in this set
+            {locked ? "Length set by your teacher" : `Max ${cards.length} ${cards.length === 1 ? "card" : "cards"} in this set`}
           </p>
         </div>
         <button

@@ -3,10 +3,11 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Users, KeyRound, Plus, Copy, Check, Loader2, Trash2, Mail,
-  GraduationCap, Layers, Play, User as UserIcon,
+  GraduationCap, Layers, Play, User as UserIcon, ClipboardList,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import AssignmentCard from "@/components/AssignmentCard";
 
 export default function ClassroomDetail() {
   const { id } = useParams();
@@ -14,6 +15,8 @@ export default function ClassroomDetail() {
   const [classroom, setClassroom] = useState(null);
   const [members, setMembers] = useState([]);
   const [decks, setDecks] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [completions, setCompletions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [newEmails, setNewEmails] = useState("");
@@ -21,6 +24,15 @@ export default function ClassroomDetail() {
   const [error, setError] = useState("");
 
   const isTeacher = classroom?.created_by_id === user?.id;
+
+  const loadAssignments = async () => {
+    const [a, comp] = await Promise.all([
+      base44.entities.Assignment.filter({ classroom_id: id }, "-created_date", 100).catch(() => []),
+      base44.entities.AssignmentCompletion.filter({ classroom_id: id }).catch(() => []),
+    ]);
+    setAssignments(a);
+    setCompletions(comp);
+  };
 
   useEffect(() => {
     (async () => {
@@ -33,6 +45,7 @@ export default function ClassroomDetail() {
         ]);
         setMembers(m);
         setDecks(d);
+        await loadAssignments();
       } catch {
         setClassroom(false);
       } finally {
@@ -77,6 +90,16 @@ export default function ClassroomDetail() {
       setError(e.response?.data?.error || "Couldn't add students.");
     } finally {
       setAdding(false);
+    }
+  };
+
+  const deleteAssignment = async (a) => {
+    try {
+      await base44.entities.Assignment.delete(a.id);
+      setAssignments((prev) => prev.filter((x) => x.id !== a.id));
+      setCompletions((prev) => prev.filter((c) => c.assignment_id !== a.id));
+    } catch {
+      /* ignore */
     }
   };
 
@@ -195,6 +218,59 @@ export default function ClassroomDetail() {
                 </div>
               </Link>
             ))}
+          </div>
+        )}
+      </section>
+
+      {/* Assignments */}
+      <section className="mt-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-2xl text-foreground flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-primary" /> Assignments
+          </h2>
+          {isTeacher && (
+            <Link
+              to={`/assign/${id}`}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
+            >
+              <Plus className="w-3.5 h-3.5" /> New assignment
+            </Link>
+          )}
+        </div>
+        {assignments.length === 0 ? (
+          <div className="p-8 border border-dashed border-slate-200 rounded-md text-center">
+            <ClipboardList className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+            <p className="font-body text-sm text-muted-foreground">
+              {isTeacher
+                ? "No assignments yet. Create one for this class."
+                : "Your teacher hasn't assigned anything yet."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {assignments.map((a, i) => {
+              const joinedCount = members.filter((m) => m.status === "joined").length;
+              const completedCount = isTeacher
+                ? completions.filter(
+                    (c) => c.assignment_id === a.id && c.status === "completed"
+                  ).length
+                : 0;
+              const myCompletion = isTeacher
+                ? null
+                : completions.find((c) => c.assignment_id === a.id);
+              return (
+                <AssignmentCard
+                  key={a.id}
+                  assignment={a}
+                  index={i}
+                  isTeacher={isTeacher}
+                  completion={myCompletion}
+                  completedCount={completedCount}
+                  joinedCount={joinedCount}
+                  onDelete={() => deleteAssignment(a)}
+                />
+              );
+            })}
           </div>
         )}
       </section>
