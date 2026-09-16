@@ -22,6 +22,8 @@ import ClassroomDetail from './pages/ClassroomDetail';
 import Join from './pages/Join';
 import CreateAssignment from './pages/CreateAssignment';
 import Profile from './pages/Profile';
+import AdminDataPrivacy from './pages/AdminDataPrivacy';
+import Privacy from './pages/Privacy';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -63,6 +65,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="/search" element={<Search />} />
         <Route path="/deck/:id" element={<DeckDetail />} />
         <Route path="/profile/:userId" element={<Profile />} />
@@ -75,7 +78,8 @@ const AuthenticatedApp = () => {
           <Route path="/join" element={<Join />} />
           <Route path="/assign/:classroomId" element={<CreateAssignment />} />
           <Route path="/account" element={<Account />} />
-        </Route>
+          <Route path="/admin/data-privacy" element={<AdminDataPrivacy />} />
+          </Route>
       </Route>
       <Route path="/study/:id/:mode" element={<Study />} />
       <Route path="*" element={<PageNotFound />} />

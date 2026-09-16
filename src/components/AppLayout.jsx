@@ -23,6 +23,7 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const q = params.get("q") || "";
+  const isAdmin = user?.role === "admin";
 
   const onSearch = (e) => {
     const val = e.target.value;
@@ -121,6 +122,14 @@ export default function AppLayout() {
             <Link to="/contact" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
               Contact
             </Link>
+            <Link to="/privacy" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+              Privacy
+            </Link>
+            {isAdmin && (
+              <Link to="/admin/data-privacy" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline">
+                Data Privacy
+              </Link>
+            )}
           </div>
         </div>
       </footer>
