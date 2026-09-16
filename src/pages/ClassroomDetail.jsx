@@ -83,6 +83,7 @@ export default function ClassroomDetail() {
             classroom_id: id,
             classroom_name: classroom.name,
             student_email: e,
+            teacher_id: user.id,
             status: "invited",
           }))
         );
@@ -166,6 +167,9 @@ export default function ClassroomDetail() {
         </Link>
       </div>
     );
+
+  const joinedMembers = members.filter((m) => m.status === "joined");
+  const joinedCount = joinedMembers.length;
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12">
@@ -272,28 +276,26 @@ export default function ClassroomDetail() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {assignments.map((a, i) => {
-              const joinedCount = members.filter((m) => m.status === "joined").length;
-              const completedCount = isTeacher
-                ? completions.filter(
-                    (c) => c.assignment_id === a.id && c.status === "completed"
-                  ).length
-                : 0;
-              const myCompletion = isTeacher
-                ? null
-                : completions.find((c) => c.assignment_id === a.id);
-              return (
-                <AssignmentCard
-                  key={a.id}
-                  assignment={a}
-                  index={i}
-                  isTeacher={isTeacher}
-                  completion={myCompletion}
-                  completedCount={completedCount}
-                  joinedCount={joinedCount}
-                  onDelete={() => deleteAssignment(a)}
-                />
-              );
-            })}
+               const aComps = completions.filter((c) => c.assignment_id === a.id);
+               const completedCount = isTeacher
+                 ? aComps.filter((c) => c.status === "completed").length
+                 : 0;
+               const myCompletion = isTeacher ? null : aComps[0] || null;
+               return (
+                 <AssignmentCard
+                   key={a.id}
+                   assignment={a}
+                   index={i}
+                   isTeacher={isTeacher}
+                   completion={myCompletion}
+                   completedCount={completedCount}
+                   joinedCount={joinedCount}
+                   students={isTeacher ? joinedMembers : []}
+                   assignmentCompletions={aComps}
+                   onDelete={() => deleteAssignment(a)}
+                 />
+               );
+             })}
           </div>
         )}
       </section>

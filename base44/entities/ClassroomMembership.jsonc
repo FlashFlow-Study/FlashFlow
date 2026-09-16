@@ -16,6 +16,9 @@
     "user_id": {
       "type": "string"
     },
+    "teacher_id": {
+      "type": "string"
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -40,6 +43,9 @@
         },
         {
           "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.teacher_id": "{{user.id}}"
         }
       ]
     },
@@ -56,11 +62,21 @@
         },
         {
           "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.teacher_id": "{{user.id}}"
         }
       ]
     },
     "delete": {
-      "created_by_id": "{{user.id}}"
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.teacher_id": "{{user.id}}"
+        }
+      ]
     }
   }
 }

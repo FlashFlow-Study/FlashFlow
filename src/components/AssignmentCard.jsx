@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Play, Trash2, CheckCircle2, Layers, BookOpen, Calendar } from "lucide-react";
+import { Play, Trash2, CheckCircle2, Layers, BookOpen, Calendar, Clock, Circle } from "lucide-react";
 import { modeLabel, goalLabel, progressText, isCompleted } from "@/lib/assignments";
 
 function dueStatus(due) {
@@ -23,11 +23,18 @@ export default function AssignmentCard({
   completion = null,
   completedCount = 0,
   joinedCount = 0,
+  students = [],
+  assignmentCompletions = [],
   onDelete,
 }) {
   const navigate = useNavigate();
   const done = isTeacher ? false : isCompleted(completion);
   const due = dueStatus(assignment.due_date);
+
+  const completionByEmail = {};
+  assignmentCompletions.forEach((c) => {
+    if (c.student_email) completionByEmail[c.student_email.toLowerCase()] = c;
+  });
 
   const start = () =>
     navigate(
@@ -98,6 +105,38 @@ export default function AssignmentCard({
           )}
         </div>
       </div>
+
+      {isTeacher && students.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-blue-100 dark:border-blue-900/40">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
+            Students
+          </p>
+          <ul className="space-y-2 max-h-48 overflow-y-auto">
+            {students.map((s) => {
+              const c = completionByEmail[(s.student_email || "").toLowerCase()];
+              const status = c?.status === "completed" ? "done" : c ? "progress" : "todo";
+              return (
+                <li key={s.id || s.student_email} className="flex items-center justify-between gap-3">
+                  <span className="font-body text-sm text-foreground truncate">{s.student_email}</span>
+                  {status === "done" ? (
+                    <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-positive">
+                      <CheckCircle2 className="w-3 h-3" /> Done
+                    </span>
+                  ) : status === "progress" ? (
+                    <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-amber-500">
+                      <Clock className="w-3 h-3" /> In progress
+                    </span>
+                  ) : (
+                    <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                      <Circle className="w-3 h-3" /> Not started
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-5 flex gap-2">
         {isTeacher ? (

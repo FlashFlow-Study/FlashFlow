@@ -38,20 +38,20 @@ export default function Join() {
 
       if (existing.length > 0) {
         const membership = existing[0];
-        if (membership.status === "joined") {
-          setSuccess(classroom);
-          return;
+        const patch = {};
+        if (membership.status !== "joined") patch.status = "joined";
+        if (!membership.user_id) patch.user_id = user.id;
+        if (!membership.teacher_id) patch.teacher_id = classroom.created_by_id;
+        if (Object.keys(patch).length) {
+          await base44.entities.ClassroomMembership.update(membership.id, patch);
         }
-        await base44.entities.ClassroomMembership.update(membership.id, {
-          user_id: user.id,
-          status: "joined",
-        });
       } else {
         await base44.entities.ClassroomMembership.create({
           classroom_id: classroom.id,
           classroom_name: classroom.name,
           student_email: user.email,
           user_id: user.id,
+          teacher_id: classroom.created_by_id,
           status: "joined",
         });
       }
