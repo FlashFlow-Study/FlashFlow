@@ -101,8 +101,8 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
   if (!card) return null;
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full max-w-3xl mb-6 flex items-center justify-between">
+    <div className="flex flex-col items-center w-full max-w-4xl">
+      <div className="w-full mb-6 flex items-center justify-between">
         <ProgressGauge
           current={index + 1}
           total={activeCards.length}
@@ -123,7 +123,7 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
       )}
 
       <div
-        className="w-full max-w-3xl h-[28rem] cursor-pointer select-none"
+        className="w-full h-[28rem] cursor-pointer select-none"
         style={{ perspective: "1200px" }}
         onClick={() => setFlipped((f) => !f)}
       >
