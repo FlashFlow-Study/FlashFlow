@@ -128,8 +128,10 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
         onClick={() => setFlipped((f) => !f)}
       >
         <motion.div
+          key={card.id}
           className="relative w-full h-full"
           style={{ transformStyle: "preserve-3d" }}
+          initial={false}
           animate={{ rotateY: flipped ? 180 : 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >
