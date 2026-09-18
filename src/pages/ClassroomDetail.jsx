@@ -48,6 +48,22 @@ export default function ClassroomDetail() {
         ]);
         setMembers(m);
         setDecks(d);
+        // Teacher-side sync: keep each deck's classroom_members aligned with
+        // the current joined members, so students who joined after a deck was
+        // created can read it (students can't update decks themselves).
+        if (c.created_by_id === user?.id && d.length) {
+          const joinedIds = m
+            .filter((mm) => mm.status === "joined")
+            .map((mm) => mm.user_id)
+            .filter(Boolean);
+          const sig = (arr) => JSON.stringify((arr || []).slice().sort());
+          const updates = d
+            .filter((dd) => sig(dd.classroom_members) !== sig(joinedIds))
+            .map((dd) => ({ id: dd.id, classroom_members: joinedIds }));
+          if (updates.length) {
+            base44.entities.Deck.bulkUpdate(updates).catch(() => {});
+          }
+        }
         await loadAssignments();
       } catch {
         setClassroom(false);

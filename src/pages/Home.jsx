@@ -159,7 +159,7 @@ export default function Home() {
       </div>
 
       {/* Recently Opened Sets */}
-      {!query && recentDecks.length > 0 && (
+      {!query && user && recentDecks.length > 0 && (
         <section className="mt-8">
           <div className="mb-5">
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Recently Opened Sets</h2>

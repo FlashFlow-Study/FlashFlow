@@ -56,9 +56,7 @@
           "data.is_public": true
         },
         {
-          "data.classroom_id": {
-            "$exists": true
-          }
+          "data.classroom_members": "{{user.id}}"
         }
       ]
     },
