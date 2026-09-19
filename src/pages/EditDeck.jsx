@@ -19,6 +19,7 @@ export default function EditDeck() {
   const [isTwoLanguages, setIsTwoLanguages] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [folders, setFolders] = useState([]);
+  const [originalIds, setOriginalIds] = useState([]);
   const activeInputRef = React.useRef(null);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function EditDeck() {
           base44.entities.Folder.list("-created_date", 100).catch(() => []),
         ]);
         setCards(c.map((card) => ({ id: card.id, front: card.front, back: card.back, order: card.order })));
+        setOriginalIds(c.map((card) => card.id));
         setFolders(folderList);
       } catch {
         setError("Deck not found or you don't have permission to edit it.");
@@ -72,10 +74,14 @@ export default function EditDeck() {
         is_two_languages: isTwoLanguages,
         folder_id: selectedFolder || undefined,
       });
-      await base44.entities.Card.deleteMany({ deck_id: id });
-      await base44.entities.Card.bulkCreate(
-        valid.map((c, i) => ({ deck_id: id, front: c.front.trim(), back: c.back.trim(), order: i }))
-      );
+      const indexed = valid.map((c, i) => ({ ...c, front: c.front.trim(), back: c.back.trim(), order: i }));
+      const toUpdate = indexed.filter((c) => c.id).map((c) => ({ id: c.id, front: c.front, back: c.back, order: c.order }));
+      const toCreate = indexed.filter((c) => !c.id).map((c) => ({ deck_id: id, front: c.front, back: c.back, order: c.order }));
+      const keptIds = new Set(toUpdate.map((c) => c.id));
+      const removedIds = originalIds.filter((oid) => !keptIds.has(oid));
+      if (removedIds.length) await base44.entities.Card.deleteMany({ id: { $in: removedIds } });
+      if (toUpdate.length) await base44.entities.Card.bulkUpdate(toUpdate);
+      if (toCreate.length) await base44.entities.Card.bulkCreate(toCreate);
       navigate(`/deck/${id}`);
     } catch (e) {
       setError(e.response?.data?.error || "Couldn't save your changes.");

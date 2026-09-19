@@ -33,9 +33,18 @@ export default function DeckDetail() {
           base44.entities.UserCardStar.filter({ deck_id: id }).catch(() => []),
         ]);
         setCards(c);
-        setStarredIds(new Set(stars.map((s) => s.card_id)));
+        // Drop star records whose card no longer exists (cards can be
+        // re-created with new ids on edit), so the count stays accurate and
+        // the stars can be cleared instead of lingering as ghost stars.
+        const cardIds = new Set(c.map((card) => card.id));
+        const valid = stars.filter((s) => cardIds.has(s.card_id));
+        const orphanIds = stars.filter((s) => !cardIds.has(s.card_id)).map((s) => s.id);
+        if (orphanIds.length) {
+          base44.entities.UserCardStar.deleteMany({ id: { $in: orphanIds } }).catch(() => {});
+        }
+        setStarredIds(new Set(valid.map((s) => s.card_id)));
         const recs = {};
-        stars.forEach((s) => { recs[s.card_id] = s.id; });
+        valid.forEach((s) => { recs[s.card_id] = s.id; });
         setStarredRecords(recs);
       } catch {
         setDeck(false);
