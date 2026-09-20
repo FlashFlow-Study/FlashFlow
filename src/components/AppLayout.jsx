@@ -36,7 +36,8 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-30 bg-card/90 backdrop-blur border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-14 flex items-center gap-3 md:gap-5">
-          <Link to="/" className="font-display text-xl md:text-2xl font-bold text-foreground tracking-tight">
+          <Link to="/" className="inline-flex items-center gap-2 font-display text-xl md:text-2xl font-bold text-foreground tracking-tight">
+            <img src="https://media.base44.com/images/public/6aa2f176f13d78a264f4a844/8f5e38cd1_generated_image.png" alt="FlashFlow logo" className="w-7 h-7 md:w-8 md:h-8 rounded-md" />
             FlashFlow
           </Link>
           <div className="hidden md:flex flex-1 max-w-md ml-4">

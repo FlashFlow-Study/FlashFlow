@@ -1,0 +1,27 @@
+{
+  "name": "FlashFlow — Free Flashcard App",
+  "short_name": "FlashFlow",
+  "description": "FlashFlow is a free flashcard app for custom flashcard decks, card reviews, and focused study sessions with spaced repetition.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "https://media.base44.com/images/public/6aa2f176f13d78a264f4a844/8f5e38cd1_generated_image.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://media.base44.com/images/public/6aa2f176f13d78a264f4a844/8f5e38cd1_generated_image.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "https://media.base44.com/images/public/6aa2f176f13d78a264f4a844/8f5e38cd1_generated_image.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
