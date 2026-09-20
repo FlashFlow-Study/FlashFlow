@@ -1,8 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, Target, Users } from "lucide-react";
+import { useSeo } from "@/lib/useSeo";
 
 export default function About() {
+  useSeo(
+    "About FlashFlow — How Our Flashcards Help Students Learn",
+    "FlashFlow helps students learn faster with custom flashcard decks, AI-generated cards, quizzes, and focused spaced-repetition study sessions."
+  );
   return (
     <div className="max-w-3xl mx-auto px-6 py-12 md:py-20">
       <Link to="/" className="font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">

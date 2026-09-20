@@ -10,6 +10,7 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { useSeo } from "@/lib/useSeo";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -19,6 +20,10 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  useSeo(
+    "Create Your Free FlashFlow Account — Start Studying Smarter",
+    "Create a free FlashFlow account to build custom flashcard decks, run focused study sessions, and learn faster with spaced repetition and active recall."
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();

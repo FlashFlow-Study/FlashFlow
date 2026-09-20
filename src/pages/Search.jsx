@@ -4,6 +4,7 @@ import { Search as SearchIcon, Loader2, GraduationCap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import DeckCard from "@/components/DeckCard";
 import { useCreators } from "@/hooks/useCreators";
+import { useSeo } from "@/lib/useSeo";
 
 export default function Search() {
   const [params, setParams] = useSearchParams();
@@ -13,6 +14,10 @@ export default function Search() {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { creatorName } = useCreators(decks);
+  useSeo(
+    "Search Flashcards — Browse Public Flashcard Decks | FlashFlow",
+    "Search FlashFlow's public library of community flashcard decks by title, tag, or subject, then study with flashcards, quizzes, and type-in recall."
+  );
 
   useEffect(() => {
     (async () => {

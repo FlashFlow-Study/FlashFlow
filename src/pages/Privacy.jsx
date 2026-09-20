@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ShieldCheck, Mail, Database, EyeOff, Trash2, School, Lock } from "lucide-react";
+import { useSeo } from "@/lib/useSeo";
 
 function Section({ icon: Icon, title, children }) {
   return (
@@ -19,6 +20,10 @@ function Section({ icon: Icon, title, children }) {
 }
 
 export default function Privacy() {
+  useSeo(
+    "FlashFlow Privacy Policy — How We Handle Your Study Data",
+    "FlashFlow's privacy policy explains what study and account data we collect, how we secure it, and how you can export or delete it at any time."
+  );
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-8 py-10 md:py-16">
       <div className="mb-10">

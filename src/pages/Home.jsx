@@ -10,9 +10,14 @@ import { useCreators } from "@/hooks/useCreators";
 import { getRecentDeckIds } from "@/lib/recentDecks";
 import AssignmentCard from "@/components/AssignmentCard";
 import { isCompleted } from "@/lib/assignments";
+import { useSeo } from "@/lib/useSeo";
 
 export default function Home() {
   const { user } = useAuth();
+  useSeo(
+    "FlashFlow — Free Flashcard App for Focused Studying",
+    "FlashFlow is a free flashcard app for custom flashcard decks, card reviews, and focused study sessions with spaced repetition to help you learn faster."
+  );
   const [params, setParams] = useSearchParams();
   const query = params.get("q") || "";
   const [allDecks, setAllDecks] = useState([]);
@@ -108,13 +113,14 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-      {/* Welcome banner */}
-      <motion.section
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="border border-blue-100 dark:border-blue-900/40 bg-gradient-to-br from-blue-50 via-card to-indigo-50/50 dark:from-blue-950/20 dark:via-card dark:to-indigo-950/20 rounded-xl p-6 md:p-10 shadow-sm"
-      >
+      {/* Hero — personalized for signed-in users, keyword-rich for visitors (SEO) */}
+      {user ? (
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="border border-blue-100 dark:border-blue-900/40 bg-gradient-to-br from-blue-50 via-card to-indigo-50/50 dark:from-blue-950/20 dark:via-card dark:to-indigo-950/20 rounded-xl p-6 md:p-10 shadow-sm"
+        >
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           Welcome back
         </span>
@@ -145,7 +151,52 @@ export default function Home() {
           <StatCard label="Cards studied" value={loading ? "—" : cardsStudied} index={0} accent="text-positive" />
           <StatCard label="Decks created" value={loading ? "—" : decksCreated} index={1} />
         </div>
-      </motion.section>
+        </motion.section>
+      ) : (
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="border border-blue-100 dark:border-blue-900/40 bg-gradient-to-br from-blue-50 via-card to-indigo-50/50 dark:from-blue-950/20 dark:via-card dark:to-indigo-950/20 rounded-xl p-6 md:p-10 shadow-sm"
+        >
+          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Free flashcard app
+          </span>
+          <h1 className="mt-2 font-display font-bold text-foreground leading-[0.95] tracking-tight"
+            style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}>
+            Learn Faster with Custom Flashcards
+          </h1>
+          <p className="mt-4 max-w-2xl font-body text-sm md:text-base text-muted-foreground leading-relaxed">
+            FlashFlow is a free flashcard app for building custom flashcard decks and mastering new
+            material through focused study sessions. Create decks by hand, generate cards from your
+            notes with AI, or import an existing set — then review with flashcards, quizzes, and
+            type-in recall.
+          </p>
+          <p className="mt-3 max-w-2xl font-body text-sm md:text-base text-muted-foreground leading-relaxed">
+            Spaced repetition and active recall keep practice efficient, so you retain more in less
+            time. Track cards studied, star the terms that trip you up, and revisit them until they
+            stick — whether you're prepping for finals, learning a language, or earning a certification.
+          </p>
+          <p className="mt-3 max-w-2xl font-body text-sm md:text-base text-muted-foreground leading-relaxed">
+            Browse the public library of community decks, or join a class to study sets your teacher
+            has assigned. Your decks and progress stay private by default, and you decide what to share.
+          </p>
+          <div className="mt-6 flex gap-3 flex-wrap">
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
+            >
+              <Plus className="w-4 h-4" /> Create a free account
+            </Link>
+            <Link
+              to="/search"
+              className="inline-flex items-center gap-2 px-5 py-3 border border-slate-200 font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
+            >
+              <BookOpen className="w-4 h-4" /> Browse public decks
+            </Link>
+          </div>
+        </motion.section>
+      )}
 
       {/* Mobile search */}
       <div className="mt-6 md:hidden relative">

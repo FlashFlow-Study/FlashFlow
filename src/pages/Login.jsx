@@ -8,6 +8,7 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { useSeo } from "@/lib/useSeo";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,10 @@ export default function Login() {
   // Post-login destination (e.g. the MCP OAuth consent page sends users here
   // with returnTo so the grant flow can resume). Same-origin paths only.
   const returnTo = safeReturnTo();
+  useSeo(
+    "Log in to FlashFlow — Continue Your Study Sessions",
+    "Sign in to FlashFlow to resume your custom flashcard decks, track study progress, and keep learning with spaced repetition."
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();

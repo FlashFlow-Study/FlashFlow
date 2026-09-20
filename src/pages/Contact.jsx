@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, MessageSquare, Send } from "lucide-react";
+import { useSeo } from "@/lib/useSeo";
 
 export default function Contact() {
+  useSeo(
+    "Contact FlashFlow — Get Help with Your Study App",
+    "Get help with FlashFlow, the free flashcard study app. Reach out with support questions, feedback, or feature ideas — we usually reply within 1–2 business days."
+  );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
