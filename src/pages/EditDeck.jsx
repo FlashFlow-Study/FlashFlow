@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Trash2, Save, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
+import TagSuggestions from "@/components/TagSuggestions";
+import { suggestTags } from "@/lib/suggestTags";
 
 export default function EditDeck() {
   const { id } = useParams();
@@ -21,6 +23,16 @@ export default function EditDeck() {
   const [folders, setFolders] = useState([]);
   const [originalIds, setOriginalIds] = useState([]);
   const activeInputRef = React.useRef(null);
+
+  const suggestions = useMemo(
+    () => suggestTags(cards, title, description),
+    [cards, title, description]
+  );
+  const currentTags = tags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
+  const addSuggestedTag = (t) => {
+    const list = tags.split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+    if (!list.includes(t.toLowerCase())) setTags([...list, t.toLowerCase()].join(", "));
+  };
 
   useEffect(() => {
     (async () => {
@@ -131,6 +143,7 @@ export default function EditDeck() {
               placeholder="science, biology"
               className="w-full mt-1 px-4 py-3 bg-card border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md shadow-sm"
             />
+            <TagSuggestions suggestions={suggestions} currentTags={currentTags} onAdd={addSuggestedTag} />
           </div>
           <div>
             <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Privacy</label>
