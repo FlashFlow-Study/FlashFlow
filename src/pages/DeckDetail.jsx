@@ -167,7 +167,7 @@ export default function DeckDetail() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               { mode: "flashcards", label: "Flashcards" },
-              { mode: "quiz", label: "Quiz" },
+              { mode: "quiz", label: "Practice" },
               { mode: "type", label: "Type" },
               { mode: "test", label: "Test" },
             ].map((m) => (

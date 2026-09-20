@@ -136,25 +136,25 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center bg-card border border-border p-8 text-center"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-card border border-border p-8 text-center rounded-md"
             style={{ backfaceVisibility: "hidden" }}
           >
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
-              Term
+              {card.promptLabel}
             </span>
-            <p className="font-display text-4xl leading-snug text-foreground">{card.front}</p>
+            <p className="font-display text-4xl leading-snug text-foreground">{card.prompt}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               <RotateCw className="w-3 h-3" /> Click to flip
             </span>
           </div>
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center bg-primary text-primary-foreground p-8 text-center"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-primary text-primary-foreground p-8 text-center rounded-md"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
             <span className="text-[10px] font-mono uppercase tracking-widest opacity-70 mb-4">
-              Definition
+              {card.answerLabel}
             </span>
-            <p className="font-display text-3xl leading-snug">{card.back}</p>
+            <p className="font-display text-3xl leading-snug">{card.answer}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest opacity-70">
               <RotateCw className="w-3 h-3" /> Click to flip back
             </span>
@@ -183,13 +183,13 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
           <button
             onClick={prev}
             disabled={index === 0}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest disabled:opacity-30 hover:border-primary disabled:hover:border-border transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest disabled:opacity-30 hover:border-primary disabled:hover:border-border transition-colors rounded-md"
           >
             <ChevronLeft className="w-4 h-4" /> Prev
           </button>
           <button
             onClick={() => setFlipped(true)}
-            className="px-5 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors"
+            className="px-5 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
           >
             <RotateCw className="w-3.5 h-3.5 inline mr-1.5" /> Flip
           </button>

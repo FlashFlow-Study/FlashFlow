@@ -42,11 +42,11 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
   const activeInputRef = useRef(null);
 
   const card = cards[index];
-  const correct = checked && isAnswerCorrect(value, card.back, isTwoLanguages);
+  const correct = checked && isAnswerCorrect(value, card.answer, isTwoLanguages);
 
   const check = () => {
     setChecked(true);
-    if (isAnswerCorrect(value, card.back, isTwoLanguages)) setScore((s) => s + 1);
+    if (isAnswerCorrect(value, card.answer, isTwoLanguages)) setScore((s) => s + 1);
   };
 
   const next = () => {
@@ -65,7 +65,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
         </p>
         <button
           onClick={onExit}
-          className="px-6 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors"
+          className="px-6 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
         >
           Back to deck
         </button>
@@ -87,9 +87,9 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
 
       <div className="w-full max-w-xl">
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-          Term
+          {card.promptLabel}
         </span>
-        <h3 className="font-display text-3xl text-foreground mt-3 mb-6">{card.front}</h3>
+        <h3 className="font-display text-3xl text-foreground mt-3 mb-6">{card.prompt}</h3>
 
         <input
           autoFocus
@@ -101,8 +101,8 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
             if (e.key === "Enter" && checked) next();
           }}
           disabled={checked}
-          placeholder="Type the definition…"
-          className={`w-full px-4 py-3 bg-card border font-body text-sm focus:outline-none transition-colors ${
+          placeholder={`Type the ${card.answerLabel.toLowerCase()}…`}
+          className={`w-full px-4 py-3 bg-card border font-body text-sm focus:outline-none transition-colors rounded-md ${
             checked
               ? correct
                 ? "border-primary"
@@ -124,7 +124,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="mt-4 p-4 border border-border bg-card"
+            className="mt-4 p-4 border border-border bg-card rounded-md"
           >
             <div className="flex items-center gap-2 mb-2">
               {correct ? (
@@ -138,7 +138,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
             </div>
             <p className="font-body text-sm text-foreground">
               <span className="text-muted-foreground">Answer: </span>
-              {card.back}
+              {card.answer}
             </p>
           </motion.div>
         )}
@@ -146,14 +146,14 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
         {!checked ? (
           <button
             onClick={check}
-            className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
+            className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
           >
             Check answer
           </button>
         ) : (
           <button
             onClick={next}
-            className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
+            className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
           >
             {index < cards.length - 1 ? "Next card" : "Finish"}
           </button>

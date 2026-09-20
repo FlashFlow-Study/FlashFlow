@@ -4,10 +4,14 @@ import { Layers, Lock, LogIn, ClipboardList } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { recordAssignmentProgress, goalLabel } from "@/lib/assignments";
+import { buildQuestions } from "@/lib/studyCards";
+import StudySetup from "@/components/study/StudySetup";
 import FlashcardMode from "@/components/study/FlashcardMode";
-import QuizMode from "@/components/study/QuizMode";
+import PracticeMode from "@/components/study/PracticeMode";
 import TypeMode from "@/components/study/TypeMode";
 import TestMode from "@/components/study/TestMode";
+
+const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test" };
 
 export default function Study() {
   const { id, mode } = useParams();
@@ -19,8 +23,17 @@ export default function Study() {
   const [cards, setCards] = useState([]);
   const [assignment, setAssignment] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [started, setStarted] = useState(false);
+  const [randomize, setRandomize] = useState(true);
+  const [varyDirection, setVaryDirection] = useState(true);
+  const [questionCount, setQuestionCount] = useState(20);
+  const [questions, setQuestions] = useState([]);
   const recordedRef = useRef(false);
   const startTimeRef = useRef(null);
+
+  const modeLabelText = MODE_LABELS[mode] || mode;
+  const assignedCount = mode === "test" && assignment?.test_length ? assignment.test_length : null;
+  const locked = !!assignedCount;
 
   const handleComplete = async (stats) => {
     if (!user) return;
@@ -71,6 +84,15 @@ export default function Study() {
     })();
   }, [id, starredOnly, assignmentId]);
 
+  // Default question count for test mode (before the user starts)
+  useEffect(() => {
+    if (started) return;
+    const d = assignedCount
+      ? Math.min(assignedCount, cards.length)
+      : Math.min(20, cards.length);
+    if (d) setQuestionCount(d);
+  }, [assignment, cards.length, started]);
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
@@ -100,7 +122,7 @@ export default function Study() {
               ← {deck.title}
             </Link>
             <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-              {mode === "quiz" ? "Quiz mode" : mode === "test" ? "Test mode" : "Type mode"}
+              {modeLabelText} mode
             </span>
           </div>
         </header>
@@ -109,7 +131,7 @@ export default function Study() {
             <Lock className="w-8 h-8 text-primary mx-auto mb-4" />
             <h2 className="font-display text-2xl text-foreground">Sign in to continue</h2>
             <p className="mt-2 font-body text-sm text-muted-foreground">
-              {mode === "quiz" ? "Quiz" : mode === "test" ? "Test" : "Type"} mode is available once you sign in. Flashcard mode is free to practice.
+              {modeLabelText} mode is available once you sign in. Flashcard mode is free to practice.
             </p>
             <Link
               to={`/login?returnTo=${encodeURIComponent(`/study/${id}/${mode}`)}`}
@@ -126,11 +148,17 @@ export default function Study() {
     );
   }
 
-  const Mode = mode === "quiz" ? QuizMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : FlashcardMode;
-  if (!startTimeRef.current) startTimeRef.current = Date.now();
+  const start = () => {
+    const qs = buildQuestions(cards, { shuffle: randomize, varyDirection });
+    const final = mode === "test" ? qs.slice(0, Math.min(questionCount, qs.length)) : qs;
+    setQuestions(final);
+    setStarted(true);
+  };
 
   const exitTarget = assignment ? `/classroom/${assignment.classroom_id}` : `/deck/${id}`;
-  const assignedCount = mode === "test" && assignment?.test_length ? assignment.test_length : null;
+
+  const Mode = mode === "quiz" ? PracticeMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : FlashcardMode;
+  if (started && !startTimeRef.current) startTimeRef.current = Date.now();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -140,7 +168,7 @@ export default function Study() {
             ← {deck.title}
           </Link>
           <span className="font-mono text-[10px] uppercase tracking-widest text-primary">
-            {mode === "quiz" ? "Quiz mode" : mode === "type" ? "Type mode" : mode === "test" ? "Test mode" : "Flashcard mode"}
+            {modeLabelText} mode
           </span>
         </div>
         {assignment && (
@@ -159,13 +187,30 @@ export default function Study() {
         )}
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <Mode
-          cards={cards}
-          onExit={() => (window.location.href = exitTarget)}
-          onComplete={handleComplete}
-          isTwoLanguages={deck.is_two_languages}
-          assignedCount={assignedCount}
-        />
+        {!started ? (
+          <StudySetup
+            modeLabel={modeLabelText}
+            deckTitle={deck.title}
+            cardCount={cards.length}
+            randomize={randomize}
+            setRandomize={setRandomize}
+            varyDirection={varyDirection}
+            setVaryDirection={setVaryDirection}
+            questionCount={questionCount}
+            setQuestionCount={setQuestionCount}
+            showCount={mode === "test"}
+            locked={locked}
+            onStart={start}
+            onCancel={() => (window.location.href = exitTarget)}
+          />
+        ) : (
+          <Mode
+            cards={questions}
+            onExit={() => (window.location.href = exitTarget)}
+            onComplete={handleComplete}
+            isTwoLanguages={deck.is_two_languages}
+          />
+        )}
       </main>
     </div>
   );

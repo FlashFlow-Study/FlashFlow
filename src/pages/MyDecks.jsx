@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Upload, Loader2, BookOpen, FolderPlus, Folder, X } from "lucide-react";
+import { Plus, Upload, Loader2, BookOpen, FolderPlus, Folder, X, GripVertical } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import DeckCard from "@/components/DeckCard";
@@ -14,6 +14,8 @@ export default function MyDecks() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [draggingId, setDraggingId] = useState(null);
+  const [dragOver, setDragOver] = useState(null); // folder id | "unfiled" | null
 
   useEffect(() => {
     (async () => {
@@ -64,11 +66,29 @@ export default function MyDecks() {
     } catch { /* ignore */ }
   };
 
+  const moveDeck = async (deckId, folderId) => {
+    try {
+      await base44.entities.Deck.update(deckId, { folder_id: folderId || undefined });
+      setDecks((prev) => prev.map((d) => (d.id === deckId ? { ...d, folder_id: folderId || undefined } : d)));
+    } catch { /* ignore */ }
+  };
+
+  const onDropFolder = (e, folderId) => {
+    e.preventDefault();
+    const deckId = e.dataTransfer.getData("text/deckId");
+    setDragOver(null);
+    setDraggingId(null);
+    if (deckId) moveDeck(deckId, folderId);
+  };
+
   const filteredDecks = activeFilter === "all"
     ? decks
     : activeFilter === "unfiled"
     ? decks.filter((d) => !d.folder_id)
     : decks.filter((d) => d.folder_id === activeFilter);
+
+  const dropTargetClass = (key) =>
+    dragOver === key && draggingId ? "ring-2 ring-primary border-primary bg-primary/5" : "";
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
@@ -82,7 +102,7 @@ export default function MyDecks() {
               My Decks
             </h1>
             <p className="mt-2 font-body text-sm text-muted-foreground max-w-lg">
-              All of your flashcard sets in one place. Create, import, and manage your study material.
+              All of your flashcard sets in one place. Drag a deck into a folder to organize it.
             </p>
           </div>
           <div className="flex gap-3">
@@ -102,21 +122,27 @@ export default function MyDecks() {
         </div>
       </div>
 
-      {/* Folder filter bar */}
+      {/* Folder drop zones */}
       <div className="mt-6 flex items-center gap-2 flex-wrap">
         <button
           onClick={() => setActiveFilter("all")}
+          onDragOver={(e) => { e.preventDefault(); setDragOver("all"); }}
+          onDragLeave={() => setDragOver(null)}
+          onDrop={(e) => onDropFolder(e, null)}
           className={`px-4 py-2 font-mono text-xs uppercase tracking-widest border rounded-full transition-colors ${
             activeFilter === "all" ? "border-primary text-primary bg-primary/5" : "border-border text-muted-foreground hover:border-primary hover:text-foreground"
-          }`}
+          } ${dropTargetClass("all")}`}
         >
           All ({decks.length})
         </button>
         <button
           onClick={() => setActiveFilter("unfiled")}
+          onDragOver={(e) => { e.preventDefault(); setDragOver("unfiled"); }}
+          onDragLeave={() => setDragOver(null)}
+          onDrop={(e) => onDropFolder(e, null)}
           className={`px-4 py-2 font-mono text-xs uppercase tracking-widest border rounded-full transition-colors ${
             activeFilter === "unfiled" ? "border-primary text-primary bg-primary/5" : "border-border text-muted-foreground hover:border-primary hover:text-foreground"
-          }`}
+          } ${dropTargetClass("unfiled")}`}
         >
           Unfiled ({decks.filter((d) => !d.folder_id).length})
         </button>
@@ -126,9 +152,12 @@ export default function MyDecks() {
             <div key={f.id} className="relative group">
               <button
                 onClick={() => setActiveFilter(f.id)}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(f.id); }}
+                onDragLeave={() => setDragOver(null)}
+                onDrop={(e) => onDropFolder(e, f.id)}
                 className={`inline-flex items-center gap-1.5 px-4 py-2 font-mono text-xs uppercase tracking-widest border rounded-full transition-colors ${
                   activeFilter === f.id ? "border-primary text-primary bg-primary/5" : "border-border text-muted-foreground hover:border-primary hover:text-foreground"
-                }`}
+                } ${dropTargetClass(f.id)}`}
               >
                 <Folder className="w-3.5 h-3.5" />
                 {f.name} ({count})
@@ -179,6 +208,11 @@ export default function MyDecks() {
         <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
           {loading ? "Loading…" : `${filteredDecks.length} ${filteredDecks.length === 1 ? "deck" : "decks"}`}
         </p>
+        {draggingId && (
+          <p className="font-mono text-[10px] uppercase tracking-widest text-primary">
+            Drop into a folder ↑
+          </p>
+        )}
       </div>
 
       {loading ? (
@@ -203,7 +237,25 @@ export default function MyDecks() {
       ) : (
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredDecks.map((d, i) => (
-            <DeckCard key={d.id} deck={d} index={i} cardCount={counts[d.id]} />
+            <div
+              key={d.id}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/deckId", d.id);
+                e.dataTransfer.effectAllowed = "move";
+                setDraggingId(d.id);
+              }}
+              onDragEnd={() => { setDraggingId(null); setDragOver(null); }}
+              className={`relative group ${draggingId === d.id ? "opacity-50" : ""}`}
+            >
+              <DeckCard deck={d} index={i} cardCount={counts[d.id]} />
+              <span
+                title="Drag into a folder"
+                className="absolute top-2 right-2 p-1.5 rounded-md bg-card border border-border text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+              >
+                <GripVertical className="w-4 h-4" />
+              </span>
+            </div>
           ))}
         </div>
       )}
