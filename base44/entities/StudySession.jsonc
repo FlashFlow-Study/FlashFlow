@@ -14,7 +14,8 @@
       "enum": [
         "flashcards",
         "quiz",
-        "type"
+        "type",
+        "speaking"
       ]
     },
     "cards_studied": {

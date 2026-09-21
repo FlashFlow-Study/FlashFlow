@@ -8,6 +8,7 @@ import StarToggle from "@/components/StarToggle";
 import { useAuth } from "@/lib/AuthContext";
 import { useCreators } from "@/hooks/useCreators";
 import { addRecentDeck } from "@/lib/recentDecks";
+import SpeakButton from "@/components/SpeakButton";
 
 export default function DeckDetail() {
   const { id } = useParams();
@@ -170,6 +171,7 @@ export default function DeckDetail() {
               { mode: "quiz", label: "Practice" },
               { mode: "type", label: "Type" },
               { mode: "test", label: "Test" },
+              { mode: "speaking", label: "Speaking" },
             ].map((m) => (
               <Link
                 key={m.mode}
@@ -241,13 +243,14 @@ export default function DeckDetail() {
                         <StarToggle starred={starredIds.has(c.id)} onToggle={() => toggleStar(c.id)} />
                       </div>
                       {flippedIndex === i && (
-                        <motion.p
+                        <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
-                          className="mt-2 font-body text-sm text-muted-foreground border-l-2 border-primary pl-3"
+                          className="mt-2 flex items-start gap-2 font-body text-sm text-muted-foreground border-l-2 border-primary pl-3"
                         >
-                          {c.back}
-                        </motion.p>
+                          <span className="flex-1">{c.back}</span>
+                          {deck.is_two_languages && <SpeakButton text={c.back} lang={deck.target_lang} />}
+                        </motion.div>
                       )}
                       {flippedIndex !== i && (
                         <p className="mt-1 font-body text-xs text-muted-foreground italic">

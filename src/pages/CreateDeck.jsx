@@ -8,6 +8,7 @@ import ImportPanel from "@/components/ImportPanel";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import TagSuggestions from "@/components/TagSuggestions";
 import { suggestTags } from "@/lib/suggestTags";
+import LanguagePairSelect from "@/components/LanguagePairSelect";
 
 export default function CreateDeck() {
   const { user } = useAuth();
@@ -30,6 +31,8 @@ export default function CreateDeck() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [isTwoLanguages, setIsTwoLanguages] = useState(false);
+  const [sourceLang, setSourceLang] = useState("");
+  const [targetLang, setTargetLang] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("");
   const [folders, setFolders] = useState([]);
   const activeInputRef = React.useRef(null);
@@ -129,6 +132,8 @@ export default function CreateDeck() {
         classroom_name: classroomName,
         classroom_members: classroomMembers,
         is_two_languages: isTwoLanguages,
+        source_lang: sourceLang || undefined,
+        target_lang: targetLang || undefined,
         folder_id: selectedFolder || undefined,
       });
       await base44.entities.Card.bulkCreate(
@@ -292,6 +297,14 @@ export default function CreateDeck() {
               </p>
             </div>
           </div>
+          {isTwoLanguages && (
+            <LanguagePairSelect
+              sourceLang={sourceLang}
+              setSourceLang={setSourceLang}
+              targetLang={targetLang}
+              setTargetLang={setTargetLang}
+            />
+          )}
         </div>
 
         {/* AI mode */}

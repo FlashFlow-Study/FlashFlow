@@ -4,6 +4,7 @@ import { Check, X, ArrowRight } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import { shuffle } from "@/lib/studyCards";
+import SpeakButton from "@/components/SpeakButton";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -31,7 +32,7 @@ function isAnswerCorrect(userAnswer, correctAnswer, isTwoLanguages) {
   return levenshtein(a, b) <= threshold;
 }
 
-export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages }) {
+export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages, sourceLang, targetLang }) {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState("choose"); // choose | type | done
   const [selected, setSelected] = useState(null);
@@ -42,6 +43,8 @@ export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages
   const activeInputRef = useRef(null);
 
   const card = cards[index];
+  const promptLang = card?.flipped ? targetLang : sourceLang;
+  const answerLang = card?.flipped ? sourceLang : targetLang;
 
   const options = useMemo(() => {
     if (!card) return [];
@@ -129,19 +132,21 @@ export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages
                   else cls = "border-border opacity-50";
                 }
                 return (
-                  <motion.button
-                    key={opt}
-                    onClick={() => !mcChecked && setSelected(opt)}
-                    disabled={mcChecked}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.04 }}
-                    className={`w-full text-left p-4 border font-body text-sm flex items-center justify-between rounded-md ${cls}`}
-                  >
-                    <span>{opt}</span>
-                    {mcChecked && isAnswer && <Check className="w-4 h-4 text-primary" />}
-                    {mcChecked && isPicked && !isAnswer && <X className="w-4 h-4 text-destructive" />}
-                  </motion.button>
+                  <div key={opt} className="flex items-center gap-2">
+                    {isTwoLanguages && <SpeakButton text={opt} lang={answerLang} />}
+                    <motion.button
+                      onClick={() => !mcChecked && setSelected(opt)}
+                      disabled={mcChecked}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.04 }}
+                      className={`flex-1 text-left p-4 border font-body text-sm flex items-center justify-between rounded-md ${cls}`}
+                    >
+                      <span>{opt}</span>
+                      {mcChecked && isAnswer && <Check className="w-4 h-4 text-primary" />}
+                      {mcChecked && isPicked && !isAnswer && <X className="w-4 h-4 text-destructive" />}
+                    </motion.button>
+                  </div>
                 );
               })}
             </div>
@@ -161,8 +166,9 @@ export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages
                   <span className="font-mono text-xs uppercase tracking-widest">{mcCorrect ? "Correct" : "Not quite"}</span>
                 </div>
                 {!mcCorrect && (
-                  <p className="font-body text-sm text-muted-foreground mb-3">
-                    Correct {card.answerLabel.toLowerCase()}: <span className="text-foreground">{card.answer}</span>
+                  <p className="font-body text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                    <span>Correct {card.answerLabel.toLowerCase()}: <span className="text-foreground">{card.answer}</span></span>
+                    {isTwoLanguages && <SpeakButton text={card.answer} lang={answerLang} />}
                   </p>
                 )}
                 <button
@@ -224,9 +230,9 @@ export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages
                   {typeCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                   <span className="font-mono text-xs uppercase tracking-widest">{typeCorrect ? "Correct" : "Not quite"}</span>
                 </div>
-                <p className="font-body text-sm text-foreground">
-                  <span className="text-muted-foreground">Answer: </span>
-                  {card.answer}
+                <p className="font-body text-sm text-foreground flex items-center gap-2">
+                  <span><span className="text-muted-foreground">Answer: </span>{card.answer}</span>
+                  {isTwoLanguages && <SpeakButton text={card.answer} lang={answerLang} />}
                 </p>
               </motion.div>
             )}

@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import TagSuggestions from "@/components/TagSuggestions";
 import { suggestTags } from "@/lib/suggestTags";
+import LanguagePairSelect from "@/components/LanguagePairSelect";
 
 export default function EditDeck() {
   const { id } = useParams();
@@ -19,6 +20,8 @@ export default function EditDeck() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [isTwoLanguages, setIsTwoLanguages] = useState(false);
+  const [sourceLang, setSourceLang] = useState("");
+  const [targetLang, setTargetLang] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("");
   const [folders, setFolders] = useState([]);
   const [originalIds, setOriginalIds] = useState([]);
@@ -43,6 +46,8 @@ export default function EditDeck() {
         setIsPublic(!!d.is_public);
         setTags((d.tags || []).join(", "));
         setIsTwoLanguages(!!d.is_two_languages);
+        setSourceLang(d.source_lang || "");
+        setTargetLang(d.target_lang || "");
         setSelectedFolder(d.folder_id || "");
         const [c, folderList] = await Promise.all([
           base44.entities.Card.filter({ deck_id: id }, "order", 200),
@@ -84,6 +89,8 @@ export default function EditDeck() {
         is_public: isPublic,
         tags: tags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean),
         is_two_languages: isTwoLanguages,
+        source_lang: sourceLang || undefined,
+        target_lang: targetLang || undefined,
         folder_id: selectedFolder || undefined,
       });
       const indexed = valid.map((c, i) => ({ ...c, front: c.front.trim(), back: c.back.trim(), order: i }));
@@ -192,6 +199,14 @@ export default function EditDeck() {
             </p>
           </div>
         </div>
+        {isTwoLanguages && (
+          <LanguagePairSelect
+            sourceLang={sourceLang}
+            setSourceLang={setSourceLang}
+            targetLang={targetLang}
+            setTargetLang={setTargetLang}
+          />
+        )}
       </div>
 
       <div className="mt-8 space-y-3">

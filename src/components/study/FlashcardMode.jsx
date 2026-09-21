@@ -1,18 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Check, X, RotateCw, ChevronLeft } from "lucide-react";
+import { Check, X, RotateCw, ChevronLeft, Volume2 } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
+import SpeakButton from "@/components/SpeakButton";
+import { useSpeech } from "@/hooks/useSpeech";
 
-export default function FlashcardMode({ cards, onExit, onComplete }) {
+export default function FlashcardMode({ cards, onExit, onComplete, isTwoLanguages, sourceLang, targetLang }) {
   const [phase, setPhase] = useState("study"); // "study" | "review" | "done"
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [results, setResults] = useState({}); // { [cardId]: { correct, firstTry } }
   const [reviewQueue, setReviewQueue] = useState([]);
   const [round, setRound] = useState(1);
+  const [autoPlay, setAutoPlay] = useState(false);
+  const { speak, cancel } = useSpeech();
 
   const activeCards = phase === "review" ? reviewQueue : cards;
   const card = activeCards[index];
+  const promptLang = card?.flipped ? targetLang : sourceLang;
+  const answerLang = card?.flipped ? sourceLang : targetLang;
 
   const finish = (finalResults) => {
     setPhase("done");
@@ -63,6 +69,13 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
     if (index > 0) setIndex(index - 1);
   };
 
+  useEffect(() => {
+    if (!isTwoLanguages || !autoPlay) return;
+    if (flipped && card) speak(card.answer, answerLang);
+    else cancel();
+    return () => cancel();
+  }, [flipped, index, autoPlay, isTwoLanguages, card, answerLang, speak, cancel]);
+
   if (phase === "done") {
     const firstTry = cards.filter((c) => results[c.id]?.firstTry).length;
     const totalCorrect = cards.filter((c) => results[c.id]?.correct).length;
@@ -102,12 +115,22 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
 
   return (
     <div className="flex flex-col items-center w-full max-w-4xl">
-      <div className="w-full mb-6 flex items-center justify-between">
+      <div className="w-full mb-6 flex items-center justify-between gap-3">
         <ProgressGauge
           current={index + 1}
           total={activeCards.length}
           label={phase === "review" ? "Review" : "Card"}
         />
+        {isTwoLanguages && (
+          <button
+            onClick={() => setAutoPlay((v) => !v)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 border font-mono text-[10px] uppercase tracking-widest transition-colors rounded-md shrink-0 ${
+              autoPlay ? "border-primary text-primary" : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Volume2 className="w-3.5 h-3.5" /> Auto-pronounce
+          </button>
+        )}
         <button
           onClick={onExit}
           className="text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground"
@@ -142,6 +165,11 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
               {card.promptLabel}
             </span>
+            {isTwoLanguages && (
+              <span className="absolute top-3 right-3">
+                <SpeakButton text={card.prompt} lang={promptLang} />
+              </span>
+            )}
             <p className="font-display text-4xl leading-snug text-foreground">{card.prompt}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               <RotateCw className="w-3 h-3" /> Click to flip
@@ -154,6 +182,11 @@ export default function FlashcardMode({ cards, onExit, onComplete }) {
             <span className="text-[10px] font-mono uppercase tracking-widest opacity-70 mb-4">
               {card.answerLabel}
             </span>
+            {isTwoLanguages && (
+              <span className="absolute top-3 right-3">
+                <SpeakButton text={card.answer} lang={answerLang} />
+              </span>
+            )}
             <p className="font-display text-3xl leading-snug">{card.answer}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest opacity-70">
               <RotateCw className="w-3 h-3" /> Click to flip back

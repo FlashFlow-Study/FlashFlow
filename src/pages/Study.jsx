@@ -10,8 +10,9 @@ import FlashcardMode from "@/components/study/FlashcardMode";
 import PracticeMode from "@/components/study/PracticeMode";
 import TypeMode from "@/components/study/TypeMode";
 import TestMode from "@/components/study/TestMode";
+import SpeakingMode from "@/components/study/SpeakingMode";
 
-const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test" };
+const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test", speaking: "Speaking" };
 
 export default function Study() {
   const { id, mode } = useParams();
@@ -34,6 +35,7 @@ export default function Study() {
   const modeLabelText = MODE_LABELS[mode] || mode;
   const assignedCount = mode === "test" && assignment?.test_length ? assignment.test_length : null;
   const locked = !!assignedCount;
+  const isSpeaking = mode === "speaking";
 
   const handleComplete = async (stats) => {
     if (!user) return;
@@ -93,6 +95,11 @@ export default function Study() {
     if (d) setQuestionCount(d);
   }, [assignment, cards.length, started]);
 
+  // Speaking mode has its own controls — skip the setup screen.
+  useEffect(() => {
+    if (isSpeaking) setStarted(true);
+  }, [isSpeaking]);
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center font-mono text-xs uppercase tracking-widest text-muted-foreground">
@@ -112,7 +119,7 @@ export default function Study() {
       </div>
     );
 
-  const gated = mode !== "flashcards";
+  const gated = mode !== "flashcards" && mode !== "speaking";
   if (gated && !user) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -157,7 +164,7 @@ export default function Study() {
 
   const exitTarget = assignment ? `/classroom/${assignment.classroom_id}` : `/deck/${id}`;
 
-  const Mode = mode === "quiz" ? PracticeMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : FlashcardMode;
+  const Mode = isSpeaking ? SpeakingMode : mode === "quiz" ? PracticeMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : FlashcardMode;
   if (started && !startTimeRef.current) startTimeRef.current = Date.now();
 
   return (
@@ -187,7 +194,7 @@ export default function Study() {
         )}
       </header>
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        {!started ? (
+        {!started && !isSpeaking ? (
           <StudySetup
             modeLabel={modeLabelText}
             deckTitle={deck.title}
@@ -205,10 +212,12 @@ export default function Study() {
           />
         ) : (
           <Mode
-            cards={questions}
+            cards={isSpeaking ? cards : questions}
             onExit={() => (window.location.href = exitTarget)}
             onComplete={handleComplete}
             isTwoLanguages={deck.is_two_languages}
+            sourceLang={deck.source_lang}
+            targetLang={deck.target_lang}
           />
         )}
       </main>

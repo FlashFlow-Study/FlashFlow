@@ -39,6 +39,14 @@
       "type": "boolean",
       "default": false
     },
+    "source_lang": {
+      "type": "string",
+      "default": ""
+    },
+    "target_lang": {
+      "type": "string",
+      "default": ""
+    },
     "folder_id": {
       "type": "string"
     }
