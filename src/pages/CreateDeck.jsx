@@ -9,6 +9,7 @@ import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import TagSuggestions from "@/components/TagSuggestions";
 import { suggestTags } from "@/lib/suggestTags";
 import LanguagePairSelect from "@/components/LanguagePairSelect";
+import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG } from "@/lib/deckLanguages";
 
 export default function CreateDeck() {
   const { user } = useAuth();
@@ -45,6 +46,16 @@ export default function CreateDeck() {
   const addSuggestedTag = (t) => {
     const list = tags.split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
     if (!list.includes(t.toLowerCase())) setTags([...list, t.toLowerCase()].join(", "));
+  };
+  const toggleTwoLanguages = () => {
+    setIsTwoLanguages((v) => {
+      const next = !v;
+      if (next && !sourceLang && !targetLang) {
+        setSourceLang(DEFAULT_SOURCE_LANG);
+        setTargetLang(DEFAULT_TARGET_LANG);
+      }
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -282,7 +293,7 @@ export default function CreateDeck() {
             <div>
               <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Two languages?</label>
               <button
-                onClick={() => setIsTwoLanguages((v) => !v)}
+                onClick={toggleTwoLanguages}
                 className="w-full mt-1 px-4 py-3 bg-card border border-border font-mono text-xs uppercase tracking-widest flex items-center justify-between hover:border-primary transition-colors rounded-md"
               >
                 <span className={isTwoLanguages ? "text-primary" : "text-muted-foreground"}>

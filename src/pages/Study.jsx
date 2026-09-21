@@ -11,6 +11,7 @@ import PracticeMode from "@/components/study/PracticeMode";
 import TypeMode from "@/components/study/TypeMode";
 import TestMode from "@/components/study/TestMode";
 import SpeakingMode from "@/components/study/SpeakingMode";
+import { resolveDeckLanguages } from "@/lib/deckLanguages";
 
 const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test", speaking: "Speaking" };
 
@@ -163,6 +164,7 @@ export default function Study() {
   };
 
   const exitTarget = assignment ? `/classroom/${assignment.classroom_id}` : `/deck/${id}`;
+  const { sourceLang: resolvedSource, targetLang: resolvedTarget } = resolveDeckLanguages(deck, cards);
 
   const Mode = isSpeaking ? SpeakingMode : mode === "quiz" ? PracticeMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : FlashcardMode;
   if (started && !startTimeRef.current) startTimeRef.current = Date.now();
@@ -216,8 +218,8 @@ export default function Study() {
             onExit={() => (window.location.href = exitTarget)}
             onComplete={handleComplete}
             isTwoLanguages={deck.is_two_languages}
-            sourceLang={deck.source_lang}
-            targetLang={deck.target_lang}
+            sourceLang={resolvedSource}
+            targetLang={resolvedTarget}
           />
         )}
       </main>

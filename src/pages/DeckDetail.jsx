@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useCreators } from "@/hooks/useCreators";
 import { addRecentDeck } from "@/lib/recentDecks";
 import SpeakButton from "@/components/SpeakButton";
+import { resolveDeckLanguages } from "@/lib/deckLanguages";
 
 export default function DeckDetail() {
   const { id } = useParams();
@@ -97,6 +98,8 @@ export default function DeckDetail() {
         </Link>
       </div>
     );
+
+  const { targetLang: resolvedTarget } = resolveDeckLanguages(deck, cards);
 
   return (
     <div className="min-h-screen bg-background">
@@ -249,7 +252,7 @@ export default function DeckDetail() {
                           className="mt-2 flex items-start gap-2 font-body text-sm text-muted-foreground border-l-2 border-primary pl-3"
                         >
                           <span className="flex-1">{c.back}</span>
-                          {deck.is_two_languages && <SpeakButton text={c.back} lang={deck.target_lang} />}
+                          {deck.is_two_languages && <SpeakButton text={c.back} lang={resolvedTarget} />}
                         </motion.div>
                       )}
                       {flippedIndex !== i && (

@@ -7,6 +7,7 @@ import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import TagSuggestions from "@/components/TagSuggestions";
 import { suggestTags } from "@/lib/suggestTags";
 import LanguagePairSelect from "@/components/LanguagePairSelect";
+import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG, resolveDeckLanguages } from "@/lib/deckLanguages";
 
 export default function EditDeck() {
   const { id } = useParams();
@@ -56,6 +57,13 @@ export default function EditDeck() {
         setCards(c.map((card) => ({ id: card.id, front: card.front, back: card.back, order: card.order })));
         setOriginalIds(c.map((card) => card.id));
         setFolders(folderList);
+        // Backfill language defaults for existing two-language decks that have
+        // no explicit codes, so pronunciation works and the user can tweak them.
+        if (d.is_two_languages && !(d.source_lang && d.target_lang)) {
+          const r = resolveDeckLanguages(d, c);
+          setSourceLang(r.sourceLang);
+          setTargetLang(r.targetLang);
+        }
       } catch {
         setError("Deck not found or you don't have permission to edit it.");
       } finally {
@@ -69,6 +77,16 @@ export default function EditDeck() {
   };
   const addCard = () => setCards((c) => [...c, { front: "", back: "" }]);
   const removeCard = (i) => setCards((c) => c.filter((_, idx) => idx !== i));
+  const toggleTwoLanguages = () => {
+    setIsTwoLanguages((v) => {
+      const next = !v;
+      if (next && !sourceLang && !targetLang) {
+        setSourceLang(DEFAULT_SOURCE_LANG);
+        setTargetLang(DEFAULT_TARGET_LANG);
+      }
+      return next;
+    });
+  };
 
   const save = async () => {
     setError("");
@@ -184,7 +202,7 @@ export default function EditDeck() {
           <div>
             <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Two languages?</label>
             <button
-              onClick={() => setIsTwoLanguages((v) => !v)}
+              onClick={toggleTwoLanguages}
               className="w-full mt-1 px-4 py-3 bg-card border border-border font-mono text-xs uppercase tracking-widest flex items-center justify-between hover:border-primary transition-colors rounded-md"
             >
               <span className={isTwoLanguages ? "text-primary" : "text-muted-foreground"}>
