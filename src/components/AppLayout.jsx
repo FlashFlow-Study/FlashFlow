@@ -30,7 +30,7 @@ export default function AppLayout() {
     navigate(val ? `/search?q=${encodeURIComponent(val)}` : "/search", { replace: true });
   };
 
-  const initial = (user?.full_name || user?.email || "?").charAt(0).toUpperCase();
+  const initial = (user?.display_name || user?.full_name || user?.email || "?").charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -94,7 +94,7 @@ export default function AppLayout() {
                 {initial}
               </span>
               <span className="hidden md:inline font-mono text-xs text-foreground">
-                {user?.full_name || "Account"}
+                {user?.display_name || user?.full_name || "Account"}
               </span>
             </Link>
           ) : (

@@ -19,7 +19,7 @@ import {
 
 export default function Account() {
   const { user, logout, checkUserAuth } = useAuth();
-  const [name, setName] = useState(user?.full_name || "");
+  const [name, setName] = useState(user?.display_name || user?.full_name || "");
   const [savingName, setSavingName] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
   const [sessions, setSessions] = useState([]);
@@ -41,7 +41,7 @@ export default function Account() {
         if (user?.id) {
           try {
             const existing = await base44.entities.Profile.filter({ user_id: user.id });
-            const name = user.full_name || "";
+            const name = user.display_name || user.full_name || "";
             const isTeacher = !!user?.is_teacher;
             if (existing.length === 0) {
               await base44.entities.Profile.create({ user_id: user.id, full_name: name, is_teacher: isTeacher });
@@ -64,7 +64,7 @@ export default function Account() {
     setSavingName(true);
     setError("");
     try {
-      await base44.auth.updateMe({ full_name: name.trim() });
+      await base44.auth.updateMe({ display_name: name.trim() });
       try {
         const existing = await base44.entities.Profile.filter({ user_id: user.id });
         if (existing.length > 0) {
@@ -94,7 +94,7 @@ export default function Account() {
         if (existing.length > 0) {
           await base44.entities.Profile.update(existing[0].id, { is_teacher: newTeacher });
         } else {
-          await base44.entities.Profile.create({ user_id: user.id, full_name: user.full_name || "", is_teacher: newTeacher });
+          await base44.entities.Profile.create({ user_id: user.id, full_name: user.display_name || user.full_name || "", is_teacher: newTeacher });
         }
       } catch { /* ignore */ }
       window.location.reload();

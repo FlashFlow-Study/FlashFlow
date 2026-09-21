@@ -109,7 +109,7 @@ export default function Home() {
     setParams(next, { replace: true });
   };
 
-  const firstName = (user?.full_name || user?.email || "").split(" ")[0] || "there";
+  const firstName = (user?.display_name || user?.full_name || user?.email || "").split(" ")[0] || "there";
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
