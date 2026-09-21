@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Account() {
-  const { user, logout } = useAuth();
+  const { user, logout, checkUserAuth } = useAuth();
   const [name, setName] = useState(user?.full_name || "");
   const [savingName, setSavingName] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
@@ -73,6 +73,7 @@ export default function Account() {
           await base44.entities.Profile.create({ user_id: user.id, full_name: name.trim(), is_teacher: !!user?.is_teacher });
         }
       } catch { /* ignore */ }
+      await checkUserAuth();
       setNameSaved(true);
       setTimeout(() => setNameSaved(false), 2000);
     } catch (e) {
