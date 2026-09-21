@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Layers, Lock, LogIn, ClipboardList } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -62,6 +62,37 @@ export default function Study() {
       }
     }
   };
+
+  // Keep a ref of the latest questions so rapid swaps never read stale state.
+  const questionsRef = useRef(questions);
+  useEffect(() => {
+    questionsRef.current = questions;
+  }, [questions]);
+
+  // Toggle a card's persistent term/definition orientation for the current
+  // session and persist it to the card record (owners only; silently ignored
+  // for decks the user doesn't own). Re-bakes the question so the card is shown
+  // from the other side immediately.
+  const swapCard = useCallback((cardId) => {
+    const current = questionsRef.current.find((q) => q.id === cardId);
+    if (!current) return;
+    const orientation = current.orientation === "swapped" ? "normal" : "swapped";
+    questionsRef.current = questionsRef.current.map((q) =>
+      q.id === cardId
+        ? {
+            ...q,
+            orientation,
+            flipped: !q.flipped,
+            prompt: q.answer,
+            answer: q.prompt,
+            promptLabel: q.answerLabel,
+            answerLabel: q.promptLabel,
+          }
+        : q
+    );
+    setQuestions(questionsRef.current);
+    base44.entities.Card.update(cardId, { orientation }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -217,6 +248,7 @@ export default function Study() {
             cards={isSpeaking ? cards : questions}
             onExit={() => (window.location.href = exitTarget)}
             onComplete={handleComplete}
+            onSwapCard={swapCard}
             isTwoLanguages={deck.is_two_languages}
             sourceLang={resolvedSource}
             targetLang={resolvedTarget}

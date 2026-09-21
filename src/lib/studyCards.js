@@ -16,9 +16,16 @@ export function shuffle(arr) {
 export function buildQuestions(cards, { shuffle: doShuffle = false, varyDirection = false } = {}) {
   const ordered = doShuffle ? shuffle(cards) : [...cards];
   return ordered.map((c) => {
-    const flipped = varyDirection && Math.random() < 0.5;
+    // A card's persistent `orientation` is the base direction; the per-session
+    // `varyDirection` toggle adds a random flip on top (XOR). The resulting
+    // `flipped` drives prompt/answer/labels and pronunciation language, so a
+    // swapped card is still voiced on its foreign-language side either way.
+    const baseFlip = c.orientation === "swapped";
+    const randFlip = varyDirection && Math.random() < 0.5;
+    const flipped = baseFlip !== randFlip;
     return {
       ...c,
+      orientation: c.orientation || "normal",
       prompt: flipped ? c.back : c.front,
       answer: flipped ? c.front : c.back,
       flipped,

@@ -8,6 +8,8 @@ import TagSuggestions from "@/components/TagSuggestions";
 import { suggestTags } from "@/lib/suggestTags";
 import LanguagePairSelect from "@/components/LanguagePairSelect";
 import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG, resolveDeckLanguages } from "@/lib/deckLanguages";
+import SwapSidesButton from "@/components/SwapSidesButton";
+import { toast } from "@/components/ui/use-toast";
 
 export default function EditDeck() {
   const { id } = useParams();
@@ -54,7 +56,7 @@ export default function EditDeck() {
           base44.entities.Card.filter({ deck_id: id }, "order", 200),
           base44.entities.Folder.list("-created_date", 100).catch(() => []),
         ]);
-        setCards(c.map((card) => ({ id: card.id, front: card.front, back: card.back, order: card.order })));
+        setCards(c.map((card) => ({ id: card.id, front: card.front, back: card.back, order: card.order, orientation: card.orientation || "normal" })));
         setOriginalIds(c.map((card) => card.id));
         setFolders(folderList);
         // Backfill language defaults for existing two-language decks that have
@@ -75,8 +77,12 @@ export default function EditDeck() {
   const updateCard = (i, field, val) => {
     setCards((c) => c.map((card, idx) => (idx === i ? { ...card, [field]: val } : card)));
   };
-  const addCard = () => setCards((c) => [...c, { front: "", back: "" }]);
+  const addCard = () => setCards((c) => [...c, { front: "", back: "", orientation: "normal" }]);
   const removeCard = (i) => setCards((c) => c.filter((_, idx) => idx !== i));
+  const swapCardSide = (i) => {
+    setCards((c) => c.map((card, idx) => (idx === i ? { ...card, orientation: card.orientation === "swapped" ? "normal" : "swapped" } : card)));
+    toast({ description: "Sides swapped — tap again to reverse" });
+  };
   const toggleTwoLanguages = () => {
     setIsTwoLanguages((v) => {
       const next = !v;
@@ -112,8 +118,8 @@ export default function EditDeck() {
         folder_id: selectedFolder || undefined,
       });
       const indexed = valid.map((c, i) => ({ ...c, front: c.front.trim(), back: c.back.trim(), order: i }));
-      const toUpdate = indexed.filter((c) => c.id).map((c) => ({ id: c.id, front: c.front, back: c.back, order: c.order }));
-      const toCreate = indexed.filter((c) => !c.id).map((c) => ({ deck_id: id, front: c.front, back: c.back, order: c.order }));
+      const toUpdate = indexed.filter((c) => c.id).map((c) => ({ id: c.id, front: c.front, back: c.back, order: c.order, orientation: c.orientation || "normal" }));
+      const toCreate = indexed.filter((c) => !c.id).map((c) => ({ deck_id: id, front: c.front, back: c.back, order: c.order, orientation: c.orientation || "normal" }));
       const keptIds = new Set(toUpdate.map((c) => c.id));
       const removedIds = originalIds.filter((oid) => !keptIds.has(oid));
       if (removedIds.length) await base44.entities.Card.deleteMany({ id: { $in: removedIds } });
@@ -265,6 +271,12 @@ export default function EditDeck() {
                   className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
                 />
               </div>
+              <SwapSidesButton
+                onClick={() => swapCardSide(i)}
+                active={card.orientation === "swapped"}
+                className="p-2"
+                title="Swap sides"
+              />
               <button
                 onClick={() => removeCard(i)}
                 disabled={cards.length === 1}

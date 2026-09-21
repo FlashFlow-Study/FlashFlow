@@ -16,6 +16,14 @@
     "order": {
       "type": "number",
       "default": 0
+    },
+    "orientation": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "swapped"
+      ],
+      "default": "normal"
     }
   },
   "required": [

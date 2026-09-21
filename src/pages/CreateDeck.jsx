@@ -10,6 +10,8 @@ import TagSuggestions from "@/components/TagSuggestions";
 import { suggestTags } from "@/lib/suggestTags";
 import LanguagePairSelect from "@/components/LanguagePairSelect";
 import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG } from "@/lib/deckLanguages";
+import SwapSidesButton from "@/components/SwapSidesButton";
+import { toast } from "@/components/ui/use-toast";
 
 export default function CreateDeck() {
   const { user } = useAuth();
@@ -22,7 +24,7 @@ export default function CreateDeck() {
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [tags, setTags] = useState("");
-  const [cards, setCards] = useState([{ front: "", back: "" }]);
+  const [cards, setCards] = useState([{ front: "", back: "", orientation: "normal" }]);
   const [notes, setNotes] = useState("");
   const [mode, setMode] = useState(
     params.get("ai") === "1" ? "ai" : params.get("import") === "1" ? "import" : "manual"
@@ -81,8 +83,12 @@ export default function CreateDeck() {
   const updateCard = (i, field, val) => {
     setCards((c) => c.map((card, idx) => (idx === i ? { ...card, [field]: val } : card)));
   };
-  const addCard = () => setCards((c) => [...c, { front: "", back: "" }]);
+  const addCard = () => setCards((c) => [...c, { front: "", back: "", orientation: "normal" }]);
   const removeCard = (i) => setCards((c) => c.filter((_, idx) => idx !== i));
+  const swapCardSide = (i) => {
+    setCards((c) => c.map((card, idx) => (idx === i ? { ...card, orientation: card.orientation === "swapped" ? "normal" : "swapped" } : card)));
+    toast({ description: "Sides swapped — tap again to reverse" });
+  };
 
   const generate = async () => {
     setError("");
@@ -153,6 +159,7 @@ export default function CreateDeck() {
           front: c.front.trim(),
           back: c.back.trim(),
           order: i,
+          orientation: c.orientation || "normal",
         }))
       );
       navigate(`/deck/${deck.id}`);
@@ -399,6 +406,12 @@ export default function CreateDeck() {
                       className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary"
                     />
                   </div>
+                  <SwapSidesButton
+                    onClick={() => swapCardSide(i)}
+                    active={card.orientation === "swapped"}
+                    className="p-2"
+                    title="Swap sides"
+                  />
                   <button
                     onClick={() => removeCard(i)}
                     disabled={cards.length === 1}

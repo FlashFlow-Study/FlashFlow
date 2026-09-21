@@ -5,6 +5,7 @@ import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import { shuffle } from "@/lib/studyCards";
 import SpeakButton from "@/components/SpeakButton";
+import SwapSidesButton from "@/components/SwapSidesButton";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -32,7 +33,7 @@ function isAnswerCorrect(userAnswer, correctAnswer, isTwoLanguages) {
   return levenshtein(a, b) <= threshold;
 }
 
-export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages, sourceLang, targetLang }) {
+export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, isTwoLanguages, sourceLang, targetLang }) {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState("choose"); // choose | type | done
   const [selected, setSelected] = useState(null);
@@ -106,6 +107,17 @@ export default function PracticeMode({ cards, onExit, onComplete, isTwoLanguages
     <div className="flex flex-col items-center w-full max-w-2xl">
       <div className="w-full mb-8 flex items-center justify-between">
         <ProgressGauge current={index + 1} total={cards.length} label="Question" />
+        <SwapSidesButton
+          onClick={() => {
+            setSelected(null);
+            setMcChecked(false);
+            setValue("");
+            setTypeChecked(false);
+            onSwapCard?.(card.id);
+          }}
+          active={card?.orientation === "swapped"}
+          title="Swap this card's sides"
+        />
         <button onClick={onExit} className="text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground">
           Exit
         </button>

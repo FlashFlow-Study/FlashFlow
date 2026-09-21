@@ -174,7 +174,7 @@ export default function DeckDetail() {
               { mode: "quiz", label: "Practice" },
               { mode: "type", label: "Type" },
               { mode: "test", label: "Test" },
-              { mode: "speaking", label: "Speaking" },
+              ...(deck.is_two_languages ? [{ mode: "speaking", label: "Speaking" }] : []),
             ].map((m) => (
               <Link
                 key={m.mode}

@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { Check, X, RotateCw, ChevronLeft, Volume2 } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 import SpeakButton from "@/components/SpeakButton";
+import SwapSidesButton from "@/components/SwapSidesButton";
 import { useSpeech } from "@/hooks/useSpeech";
 
-export default function FlashcardMode({ cards, onExit, onComplete, isTwoLanguages, sourceLang, targetLang }) {
+export default function FlashcardMode({ cards, onExit, onComplete, onSwapCard, isTwoLanguages, sourceLang, targetLang }) {
   const [phase, setPhase] = useState("study"); // "study" | "review" | "done"
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -131,6 +132,14 @@ export default function FlashcardMode({ cards, onExit, onComplete, isTwoLanguage
             <Volume2 className="w-3.5 h-3.5" /> Auto-pronounce
           </button>
         )}
+        <SwapSidesButton
+          onClick={() => {
+            setFlipped(false);
+            onSwapCard?.(card.id);
+          }}
+          active={card?.orientation === "swapped"}
+          title="Swap this card's sides"
+        />
         <button
           onClick={onExit}
           className="text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground"
