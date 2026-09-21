@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, MessageSquare, Send } from "lucide-react";
 import { useSeo } from "@/lib/useSeo";
+import { base44 } from "@/api/base44Client";
 
 export default function Contact() {
   useSeo(
@@ -10,21 +11,33 @@ export default function Contact() {
   );
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setError("");
     if (!name.trim() || !email.trim() || !message.trim()) {
       setError("Please fill in all fields.");
       return;
     }
-    const subject = encodeURIComponent(`FlashFlow contact from ${name}`);
-    const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`);
-    window.location.href = `mailto:hello@flashflow.app?subject=${subject}&body=${body}`;
-    setSent(true);
+    setSending(true);
+    try {
+      await base44.functions.invoke("submitContact", {
+        name: name.trim(),
+        email: email.trim(),
+        subject: subject.trim(),
+        message: message.trim(),
+      });
+      setSent(true);
+    } catch (err) {
+      setError("Something went wrong sending your message. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -96,6 +109,15 @@ export default function Contact() {
                 </div>
               </div>
               <div>
+                <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Subject (optional)</label>
+                <input
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+                  placeholder="What's this about?"
+                />
+              </div>
+              <div>
                 <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Message</label>
                 <textarea
                   value={message}
@@ -108,9 +130,10 @@ export default function Contact() {
               {error && <p className="font-body text-sm text-destructive">{error}</p>}
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
+                disabled={sending}
+                className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Send className="w-4 h-4" /> Send message
+                <Send className="w-4 h-4" /> {sending ? "Sending…" : "Send message"}
               </button>
             </>
           )}
