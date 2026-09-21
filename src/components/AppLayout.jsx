@@ -78,9 +78,10 @@ export default function AppLayout() {
           )}
           <Link
             to="/create?import=1"
-            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 font-mono text-[11px] uppercase tracking-widest text-foreground hover:border-primary hover:text-primary transition-colors rounded-md"
+            className="hidden md:inline-flex items-center justify-center px-3 py-2 border border-blue-200 dark:border-blue-800 text-primary hover:border-primary hover:text-primary transition-colors rounded-md"
+            title="Import set"
           >
-            <Plus className="w-3.5 h-3.5" /> Import Set
+            <Plus className="w-4 h-4" />
           </Link>
           {user ? (
             <Link
