@@ -49,6 +49,10 @@
       "type": "number",
       "default": 0
     },
+    "assigned_date": {
+      "type": "string",
+      "format": "date"
+    },
     "due_date": {
       "type": "string",
       "format": "date"

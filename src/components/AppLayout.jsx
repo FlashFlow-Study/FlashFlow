@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Outlet, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { Search, Plus, Layers, User, FolderOpen, School, Zap } from "lucide-react";
+import { Search, Plus, Layers, User, FolderOpen, School, Zap, GraduationCap } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 function NavItem({ to, icon: Icon, label, active }) {
@@ -74,6 +74,18 @@ export default function AppLayout() {
               }`}
             >
               <School className="w-3.5 h-3.5" /> Classes
+            </Link>
+          )}
+          {user?.is_teacher && (
+            <Link
+              to="/teacher"
+              className={`hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border font-mono text-[11px] uppercase tracking-widest transition-colors rounded-md ${
+                location.pathname === "/teacher"
+                  ? "border-primary text-primary"
+                  : "border-blue-200 dark:border-blue-800 text-foreground hover:border-primary hover:text-primary"
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5" /> Teach
             </Link>
           )}
           <Link

@@ -38,6 +38,14 @@
       "type": "number",
       "default": 0
     },
+    "attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "started_date": {
+      "type": "string",
+      "format": "date-time"
+    },
     "last_attempt_date": {
       "type": "string",
       "format": "date-time"

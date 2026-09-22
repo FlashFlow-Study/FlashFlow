@@ -68,6 +68,8 @@ export async function recordAssignmentProgress(assignment, user, stats, minutes)
     questions_done,
     questions_correct,
     minutes_studied,
+    attempts: (comp?.attempts || 0) + 1,
+    started_date: comp?.started_date || now,
     last_attempt_date: now,
     status: met ? "completed" : "in_progress",
   };
