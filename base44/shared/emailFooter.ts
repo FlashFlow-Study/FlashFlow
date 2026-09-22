@@ -6,7 +6,7 @@
 
 export const EMAIL_FOOTER = `
 
-FlashFlow Mailbot. Beep, beep, boop.
+Sincerely, FlashFlow Mailbot. Beep, beep, boop.
 (Do not reply to this email)`;
 
 /** Append the mandatory FlashFlow sign-off to an email body (text or HTML). */
