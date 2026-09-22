@@ -100,10 +100,10 @@ export default function AppLayout() {
           </Link>
           <Link
             to="/create?import=1"
-            className="hidden md:inline-flex items-center justify-center px-3 py-2 border border-blue-200 dark:border-blue-800 hover:border-primary hover:text-primary transition-colors rounded-md text-[hsl(var(--popover-foreground))]"
+            className="hidden md:inline-flex items-center justify-center px-3 py-2 border border-blue-200 dark:border-blue-800 hover:border-primary hover:text-primary transition-colors rounded-md text-[hsl(var(--popover-foreground))] bg-[hsl(var(--primary))]"
             title="Import set">
             
-            <Plus className="w-4 h-4 bg-[hsl(var(--background))]" />
+            <Plus className="w-4 h-4 bg-[hsl(var(--card))] text-[hsl(var(--card))]" />
           </Link>
           {user ?
           <Link
