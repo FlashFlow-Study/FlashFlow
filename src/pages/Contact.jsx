@@ -61,8 +61,8 @@ export default function Contact() {
             <Mail className="w-5 h-5 text-primary mt-0.5" />
             <div>
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Email</p>
-              <a href="mailto:hello@flashflow.app" className="font-body text-sm text-foreground hover:text-primary transition-colors">
-                hello@flashflow.app
+              <a href="mailto:support@flashflowstudy.com" className="font-body text-sm text-foreground hover:text-primary transition-colors">
+                support@flashflowstudy.com
               </a>
             </div>
           </div>
