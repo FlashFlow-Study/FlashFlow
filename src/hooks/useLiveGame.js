@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 
 // Polls getLiveGameState on an interval and re-renders. No WebSockets.
-export function useLiveGame(gameId, playerId, intervalMs = 1500) {
+export function useLiveGame(gameId, playerId, intervalMs = 3000) {
   const [state, setState] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
