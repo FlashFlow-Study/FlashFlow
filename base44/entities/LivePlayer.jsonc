@@ -1,0 +1,71 @@
+{
+  "name": "LivePlayer",
+  "type": "object",
+  "properties": {
+    "game_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "team_number": {
+      "type": "number",
+      "default": 0
+    },
+    "score": {
+      "type": "number",
+      "default": 0
+    },
+    "cards_answered": {
+      "type": "number",
+      "default": 0
+    },
+    "cards_correct": {
+      "type": "number",
+      "default": 0
+    },
+    "joined_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "current_index": {
+      "type": "number",
+      "default": 0
+    },
+    "current_card_started_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "game_id",
+    "display_name"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

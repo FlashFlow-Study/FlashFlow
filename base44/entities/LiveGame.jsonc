@@ -1,0 +1,91 @@
+{
+  "name": "LiveGame",
+  "type": "object",
+  "properties": {
+    "deck_id": {
+      "type": "string"
+    },
+    "deck_title": {
+      "type": "string",
+      "default": ""
+    },
+    "join_code": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "race",
+        "team"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "lobby",
+        "in_progress",
+        "ended"
+      ],
+      "default": "lobby"
+    },
+    "host_user_id": {
+      "type": "string"
+    },
+    "current_card_id": {
+      "type": "string",
+      "default": ""
+    },
+    "current_round": {
+      "type": "number",
+      "default": 0
+    },
+    "card_order": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "card_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "winning_team": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "deck_id",
+    "join_code",
+    "mode",
+    "host_user_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "name": "LiveAnswer",
+  "type": "object",
+  "properties": {
+    "game_id": {
+      "type": "string"
+    },
+    "card_id": {
+      "type": "string"
+    },
+    "player_id": {
+      "type": "string"
+    },
+    "is_correct": {
+      "type": "boolean",
+      "default": false
+    },
+    "earned": {
+      "type": "number",
+      "default": 0
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "game_id",
+    "card_id",
+    "player_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

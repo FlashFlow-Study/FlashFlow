@@ -20,6 +20,10 @@ import MyDecks from './pages/MyDecks';
 import Classrooms from './pages/Classrooms';
 import ClassroomDetail from './pages/ClassroomDetail';
 import Join from './pages/Join';
+import LiveJoin from './pages/LiveJoin';
+import LiveCreate from './pages/LiveCreate';
+import LiveHost from './pages/LiveHost';
+import LivePlay from './pages/LivePlay';
 import CreateAssignment from './pages/CreateAssignment';
 import Profile from './pages/Profile';
 import AdminDataPrivacy from './pages/AdminDataPrivacy';
@@ -67,6 +71,7 @@ const AuthenticatedApp = () => {
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/search" element={<Search />} />
+        <Route path="/live" element={<LiveJoin />} />
         <Route path="/deck/:id" element={<DeckDetail />} />
         <Route path="/profile/:userId" element={<Profile />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
@@ -76,11 +81,16 @@ const AuthenticatedApp = () => {
           <Route path="/classrooms" element={<Classrooms />} />
           <Route path="/classroom/:id" element={<ClassroomDetail />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/live/create" element={<LiveCreate />} />
           <Route path="/assign/:classroomId" element={<CreateAssignment />} />
           <Route path="/account" element={<Account />} />
           <Route path="/admin/data-privacy" element={<AdminDataPrivacy />} />
           </Route>
       </Route>
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route path="/live/host/:gameId" element={<LiveHost />} />
+      </Route>
+      <Route path="/live/play/:gameId/:playerId" element={<LivePlay />} />
       <Route path="/study/:id/:mode" element={<Study />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
