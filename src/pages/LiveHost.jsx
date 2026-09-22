@@ -83,7 +83,7 @@ export default function LiveHost() {
           <div>
             <div className="text-center">
               <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Players scan or enter the code at</p>
-              <p className="font-body text-sm text-foreground">flashflowstudy.base44.app/live</p>
+              <p className="font-body text-sm text-foreground">flashflowstudy.com/live</p>
               <div className="mt-4 inline-flex items-center gap-3 px-6 py-4 border-2 border-dashed border-primary rounded-lg">
                 <span className="font-mono text-6xl tracking-[0.3em] text-primary font-bold">{game.join_code}</span>
                 <button onClick={copy} className="text-muted-foreground hover:text-primary" title="Copy code">
