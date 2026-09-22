@@ -1,70 +1,125 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Play, Pause, SkipBack, SkipForward, Shuffle, VolumeX } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 import SpeakButton from "@/components/SpeakButton";
 import { speechSupported, pickVoice } from "@/lib/speech";
 import { shuffle } from "@/lib/studyCards";
 
+// Pacing for the spoken sequence (milliseconds).
+const REP_PAUSE = 900; // between each repetition of the front word
+const LONG_PAUSE = 1500; // after the 3rd repetition, before the back/definition
+const ADVANCE_PAUSE = 1200; // before advancing to the next card
+
 /**
- * Hands-free auditory revision mode. Speaks the front (then back) of each card
- * and advances automatically. For two-language decks each side is spoken in its
- * own language; regular decks use the default voice.
+ * Hands-free auditory revision mode. For every card, speaks the front word
+ * three times (with a pause between each repetition), then — unless "front
+ * only" is on — speaks the back definition once after a longer pause, then
+ * advances after a comfortable pause. For two-language decks each side is
+ * spoken in its own language; regular decks use the default voice.
  */
 export default function SpeakingMode({ cards, onExit, onComplete, isTwoLanguages, sourceLang, targetLang }) {
   const supported = speechSupported();
   const [order, setOrder] = useState(() => cards.map((_, i) => i));
   const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState("front"); // "front" | "back"
+  const [phase, setPhase] = useState("front"); // "front" | "back" — visual only
   const [playing, setPlaying] = useState(false);
-  const [rate, setRate] = useState(1);
+  const [rate, setRate] = useState(0.85);
   const [frontOnly, setFrontOnly] = useState(false);
   const listenedRef = useRef(new Set());
 
   const card = cards[order[index]];
 
-  const goNext = useCallback(() => {
-    setPhase((p) => {
-      if (p === "front" && !frontOnly) return "back";
+  // Drive the spoken sequence for the current card. Cancellation is handled by
+  // a local `cancelled` flag plus a list of pending timers, both torn down in
+  // the effect cleanup — so pause, stop, card change, and unmount all abort any
+  // queued utterances and pending pauses cleanly.
+  useEffect(() => {
+    if (!playing || !supported || !card) {
+      if (playing && !card) setPlaying(false);
+      return;
+    }
+    const synth = window.speechSynthesis;
+    synth.cancel();
+
+    let cancelled = false;
+    const timers = [];
+    const later = (ms, fn) => {
+      const id = setTimeout(() => {
+        if (!cancelled) fn();
+      }, ms);
+      timers.push(id);
+    };
+    const speakThen = (text, lang, onDone) => {
+      if (cancelled || !text || !text.trim()) {
+        onDone?.();
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(text);
+      if (lang) {
+        u.lang = lang;
+        const v = pickVoice(lang);
+        if (v) u.voice = v;
+      }
+      u.rate = rate;
+      u.onend = () => {
+        if (!cancelled) onDone?.();
+      };
+      u.onerror = () => {
+        if (!cancelled) onDone?.();
+      };
+      synth.speak(u);
+    };
+
+    const nextCard = () => {
+      setPhase("front");
       setIndex((i) => {
         if (i + 1 < order.length) return i + 1;
         setPlaying(false);
         return i;
       });
-      return "front";
-    });
-  }, [frontOnly, order.length]);
-
-  // Speak the current side whenever playback or position changes.
-  useEffect(() => {
-    if (!playing || !supported) return;
-    if (!card) {
-      setPlaying(false);
-      return;
-    }
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    const text = phase === "front" ? card.front : card.back;
-    if (!text || !text.trim()) {
-      goNext();
-      return;
-    }
-    const u = new SpeechSynthesisUtterance(text);
-    let lang = null;
-    if (isTwoLanguages) lang = phase === "front" ? sourceLang : targetLang;
-    if (lang) {
-      u.lang = lang;
-      const v = pickVoice(lang);
-      if (v) u.voice = v;
-    }
-    u.rate = rate;
-    u.onend = () => {
-      listenedRef.current.add(order[index]);
-      goNext();
     };
-    u.onerror = () => goNext();
-    synth.speak(u);
-    return () => synth.cancel();
-  }, [playing, index, phase, rate, card, isTwoLanguages, sourceLang, targetLang, supported, goNext, order, index]);
+
+    const frontLang = isTwoLanguages ? sourceLang : null;
+    const backLang = isTwoLanguages ? targetLang : null;
+
+    setPhase("front");
+    // Front word, 1st repetition
+    speakThen(card.front, frontLang, () => {
+      if (frontOnly || !card.back || !card.back.trim()) {
+        listenedRef.current.add(order[index]);
+        later(ADVANCE_PAUSE, nextCard);
+        return;
+      }
+      later(REP_PAUSE, () =>
+        // 2nd repetition
+        speakThen(card.front, frontLang, () =>
+          later(REP_PAUSE, () =>
+            // 3rd repetition
+            speakThen(card.front, frontLang, () => {
+              if (frontOnly) {
+                listenedRef.current.add(order[index]);
+                later(ADVANCE_PAUSE, nextCard);
+                return;
+              }
+              setPhase("back");
+              later(LONG_PAUSE, () =>
+                speakThen(card.back, backLang, () => {
+                  listenedRef.current.add(order[index]);
+                  later(ADVANCE_PAUSE, nextCard);
+                })
+              );
+            })
+          )
+        )
+      );
+    });
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      synth.cancel();
+    };
+  }, [playing, index, order, rate, frontOnly, card, isTwoLanguages, sourceLang, targetLang, supported]);
 
   const togglePlay = () => setPlaying((p) => !p);
   const jump = (dir) => {
@@ -79,9 +134,13 @@ export default function SpeakingMode({ cards, onExit, onComplete, isTwoLanguages
     setPhase("front");
   };
 
-  const finish = () => {
+  const stopAndFinish = () => {
+    setPlaying(false);
     if (supported) window.speechSynthesis.cancel();
-    onComplete?.({ cards_studied: listenedRef.current.size || Math.min(index + 1, order.length), score: 0 });
+    onComplete?.({
+      cards_studied: listenedRef.current.size || Math.min(index + 1, order.length),
+      score: 0,
+    });
   };
 
   if (!supported) {
@@ -94,7 +153,7 @@ export default function SpeakingMode({ cards, onExit, onComplete, isTwoLanguages
         </p>
         <button
           onClick={() => {
-            finish();
+            stopAndFinish();
             onExit();
           }}
           className="mt-6 px-6 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
@@ -113,7 +172,7 @@ export default function SpeakingMode({ cards, onExit, onComplete, isTwoLanguages
         <ProgressGauge current={index + 1} total={order.length} label="Card" />
         <button
           onClick={() => {
-            finish();
+            stopAndFinish();
             onExit();
           }}
           className="text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground"
@@ -224,7 +283,7 @@ export default function SpeakingMode({ cards, onExit, onComplete, isTwoLanguages
 
       <button
         onClick={() => {
-          finish();
+          stopAndFinish();
           onExit();
         }}
         className="mt-8 px-6 py-2.5 border border-border font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
