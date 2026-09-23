@@ -104,6 +104,16 @@ export default function ClassroomDetail() {
           }))
         );
         setMembers((prev) => [...prev, ...created]);
+        try {
+          await base44.functions.invoke("sendClassInvite", {
+            classroom_name: classroom.name,
+            teacher_name: user.full_name || user.display_name || user.email,
+            join_code: classroom.join_code,
+            emails: toCreate,
+          });
+        } catch {
+          /* email send is best-effort; memberships already created */
+        }
       }
       setNewEmails("");
     } catch (e) {
