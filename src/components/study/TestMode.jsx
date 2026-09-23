@@ -119,6 +119,10 @@ export default function TestMode({ cards, onExit, onComplete }) {
 
         <input
           autoFocus
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: setValue }; }}

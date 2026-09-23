@@ -93,6 +93,10 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
 
         <input
           autoFocus
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: setValue }; }}

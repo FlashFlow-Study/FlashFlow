@@ -5,7 +5,6 @@ import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import { shuffle } from "@/lib/studyCards";
 import SpeakButton from "@/components/SpeakButton";
-import SwapSidesButton from "@/components/SwapSidesButton";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -107,17 +106,6 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
     <div className="flex flex-col items-center w-full max-w-2xl">
       <div className="w-full mb-8 flex items-center justify-between">
         <ProgressGauge current={index + 1} total={cards.length} label="Question" />
-        <SwapSidesButton
-          onClick={() => {
-            setSelected(null);
-            setMcChecked(false);
-            setValue("");
-            setTypeChecked(false);
-            onSwapCard?.(card.id);
-          }}
-          active={card?.orientation === "swapped"}
-          title="Swap this card's sides"
-        />
         <button onClick={onExit} className="text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground">
           Exit
         </button>
@@ -203,6 +191,10 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
             </p>
             <input
               autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: setValue }; }}
