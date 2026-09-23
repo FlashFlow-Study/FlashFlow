@@ -40,6 +40,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
   const [value, setValue] = useState("");
   const [typeChecked, setTypeChecked] = useState(false);
   const [score, setScore] = useState(0);
+  const [markedCorrect, setMarkedCorrect] = useState(false);
   const activeInputRef = useRef(null);
 
   const card = cards[index];
@@ -71,6 +72,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
 
   const mcCorrect = selected === card.answer;
   const typeCorrect = isAnswerCorrect(value, card.answer, isTwoLanguages);
+  const effectiveCorrect = typeCorrect || markedCorrect;
 
   const submitChoice = () => {
     if (selected == null) return;
@@ -81,6 +83,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
     setPhase("type");
     setValue("");
     setTypeChecked(false);
+    setMarkedCorrect(false);
   };
 
   const checkType = () => {
@@ -99,6 +102,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
     setMcChecked(false);
     setValue("");
     setTypeChecked(false);
+    setMarkedCorrect(false);
     setPhase("choose");
   };
 
@@ -230,14 +234,22 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
                 animate={{ opacity: 1 }}
                 className="mt-4 p-4 border border-border bg-card rounded-md"
               >
-                <div className={`flex items-center gap-2 mb-2 ${typeCorrect ? "text-positive" : "text-destructive"}`}>
-                  {typeCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-                  <span className="font-mono text-xs uppercase tracking-widest">{typeCorrect ? "Correct" : "Not quite"}</span>
+                <div className={`flex items-center gap-2 mb-2 ${effectiveCorrect ? "text-positive" : "text-destructive"}`}>
+                  {effectiveCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+                  <span className="font-mono text-xs uppercase tracking-widest">{effectiveCorrect ? "Correct" : "Not quite"}</span>
                 </div>
                 <p className="font-body text-sm text-foreground flex items-center gap-2">
                   <span><span className="text-muted-foreground">Answer: </span>{card.answer}</span>
                   {isTwoLanguages && <SpeakButton text={card.answer} lang={answerLang} />}
                 </p>
+                {!typeCorrect && !markedCorrect && (
+                  <button
+                    onClick={() => { setMarkedCorrect(true); setScore((s) => s + 1); }}
+                    className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 border border-border font-mono text-[10px] uppercase tracking-widest hover:border-positive hover:text-positive transition-colors rounded-md"
+                  >
+                    <Check className="w-3.5 h-3.5" /> I was right — mark correct
+                  </button>
+                )}
               </motion.div>
             )}
 

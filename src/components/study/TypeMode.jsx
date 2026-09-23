@@ -39,10 +39,11 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
   const [value, setValue] = useState("");
   const [checked, setChecked] = useState(false);
   const [score, setScore] = useState(0);
+  const [markedCorrect, setMarkedCorrect] = useState(false);
   const activeInputRef = useRef(null);
 
   const card = cards[index];
-  const correct = checked && isAnswerCorrect(value, card.answer, isTwoLanguages);
+  const correct = checked && (isAnswerCorrect(value, card.answer, isTwoLanguages) || markedCorrect);
 
   const check = () => {
     setChecked(true);
@@ -53,6 +54,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
     if (index >= cards.length - 1) onComplete?.({ cards_studied: cards.length, score });
     setValue("");
     setChecked(false);
+    setMarkedCorrect(false);
     setIndex((i) => i + 1);
   };
 
@@ -144,6 +146,14 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
               <span className="text-muted-foreground">Answer: </span>
               {card.answer}
             </p>
+            {!isAnswerCorrect(value, card.answer, isTwoLanguages) && !markedCorrect && (
+              <button
+                onClick={() => { setMarkedCorrect(true); setScore((s) => s + 1); }}
+                className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 border border-border font-mono text-[10px] uppercase tracking-widest hover:border-positive hover:text-positive transition-colors rounded-md"
+              >
+                <Check className="w-3.5 h-3.5" /> I was right — mark correct
+              </button>
+            )}
           </motion.div>
         )}
 
