@@ -194,21 +194,23 @@ export default function Classrooms() {
 
       {/* Joined classrooms (student) */}
       <section className="mt-10">
-        <h2 className="font-display text-2xl text-foreground">Joined Classes</h2>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <h2 className="font-display text-2xl text-foreground">Joined Classes</h2>
+          <Link
+            to="/join"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
+          >
+            <KeyRound className="w-3.5 h-3.5" /> Join a class
+          </Link>
+        </div>
         {loading ? (
-          <p className="mt-4 font-mono text-xs uppercase tracking-widest text-muted-foreground">Loading…</p>
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Loading…</p>
         ) : joinedClassrooms.length === 0 ? (
-          <div className="mt-4 p-8 border border-dashed border-slate-200 rounded-md text-center">
+          <div className="p-8 border border-dashed border-slate-200 rounded-md text-center">
             <KeyRound className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-            <p className="font-body text-sm text-muted-foreground mb-4">
-              You haven't joined any classes yet.
+            <p className="font-body text-sm text-muted-foreground">
+              You haven't joined any classes yet. Tap "Join a class" to enter a class code.
             </p>
-            <Link
-              to="/join"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md"
-            >
-              <KeyRound className="w-4 h-4" /> Join a class
-            </Link>
           </div>
         ) : (
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
