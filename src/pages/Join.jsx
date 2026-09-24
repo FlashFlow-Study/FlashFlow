@@ -36,6 +36,19 @@ export default function Join() {
         student_email: user.email,
       });
 
+      // Enforce a maximum of 10 joined classrooms per student.
+      const alreadyJoinedHere = existing.some((m) => m.status === "joined");
+      if (!alreadyJoinedHere) {
+        const myJoined = await base44.entities.ClassroomMembership.filter({
+          student_email: user.email,
+          status: "joined",
+        });
+        if (myJoined.length >= 10) {
+          setError("You can only be in up to 10 classes at a time. Leave one before joining another.");
+          return;
+        }
+      }
+
       if (existing.length > 0) {
         const membership = existing[0];
         const patch = {};
