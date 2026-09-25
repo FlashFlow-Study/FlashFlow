@@ -4,6 +4,8 @@ import { Search as SearchIcon, Loader2, GraduationCap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import DeckCard from "@/components/DeckCard";
 import { useCreators } from "@/hooks/useCreators";
+import { useVerifications } from "@/hooks/useVerifications";
+import UserBadges from "@/components/UserBadges";
 import { useSeo } from "@/lib/useSeo";
 
 export default function Search() {
@@ -14,6 +16,8 @@ export default function Search() {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { creatorName } = useCreators(decks);
+  const { badges: deckBadges } = useVerifications(decks.map((d) => d.created_by_id).filter(Boolean));
+  const { badges: profileBadges } = useVerifications(profiles.map((p) => p.user_id).filter(Boolean));
   useSeo(
     "Search Flashcards — Browse Public Flashcard Decks | FlashFlow",
     "Search FlashFlow's public library of community flashcard decks by title, tag, or subject, then study with flashcards, quizzes, and type-in recall."
@@ -126,7 +130,10 @@ export default function Search() {
                   {(p.full_name || "?").charAt(0).toUpperCase()}
                 </span>
                 <div className="min-w-0">
-                  <p className="font-display text-base text-foreground truncate">{p.full_name || "Unknown"}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-display text-base text-foreground truncate">{p.full_name || "Unknown"}</p>
+                    <UserBadges verified={profileBadges(p.user_id).verified} admin={profileBadges(p.user_id).admin} />
+                  </div>
                   {p.is_teacher && (
                     <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-indigo-500">
                       <GraduationCap className="w-3 h-3" /> Teacher
@@ -153,7 +160,7 @@ export default function Search() {
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((d, i) => (
             <div key={d.id}>
-              <DeckCard deck={d} index={i} cardCount={counts[d.id]} creatorName={creatorName(d)} />
+              <DeckCard deck={d} index={i} cardCount={counts[d.id]} creatorName={creatorName(d)} badges={deckBadges(d.created_by_id)} />
             </div>
           ))}
         </div>

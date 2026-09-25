@@ -4,6 +4,8 @@ import { School, Loader2, GraduationCap, Layers } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import DeckCard from "@/components/DeckCard";
+import { useVerifications } from "@/hooks/useVerifications";
+import UserBadges from "@/components/UserBadges";
 
 export default function Profile() {
   const { userId } = useParams();
@@ -13,6 +15,7 @@ export default function Profile() {
   const [counts, setCounts] = useState({});
   const [sharedClasses, setSharedClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { badges } = useVerifications([userId]);
 
   useEffect(() => {
     (async () => {
@@ -77,6 +80,7 @@ export default function Profile() {
               <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground tracking-tight">
                 {displayName}
               </h1>
+              <UserBadges verified={badges(userId).verified} admin={badges(userId).admin} />
               {isTeacher && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 border border-indigo-300 text-indigo-600 dark:border-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 rounded-full font-mono text-[10px] uppercase tracking-widest">
                   <GraduationCap className="w-3 h-3" /> Teacher

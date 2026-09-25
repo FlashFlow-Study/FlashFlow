@@ -169,6 +169,11 @@ export default function AppLayout() {
                 Data Privacy
               </Link>
             }
+            {isAdmin &&
+            <Link to="/admin/verify" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline">
+                Verify users
+              </Link>
+            }
           </div>
         </div>
       </footer>

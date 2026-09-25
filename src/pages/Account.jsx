@@ -5,6 +5,8 @@ import { LogOut, KeyRound, Trash2, Loader2, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StatCard from "@/components/StatCard";
+import { useVerifications } from "@/hooks/useVerifications";
+import UserBadges from "@/components/UserBadges";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +30,7 @@ export default function Account() {
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState("");
   const [togglingTeacher, setTogglingTeacher] = useState(false);
+  const { badges: vBadges } = useVerifications([user?.id].filter(Boolean));
 
   useEffect(() => {
     (async () => {
@@ -59,6 +62,7 @@ export default function Account() {
   }, [user?.id]);
 
   const cardsStudied = sessions.reduce((s, x) => s + (x.cards_studied || 0), 0);
+  const myBadges = { verified: user?.role === "admin" || vBadges(user?.id).verified, admin: user?.role === "admin" };
 
   const saveName = async () => {
     setSavingName(true);
@@ -145,7 +149,10 @@ export default function Account() {
             {(name || user?.email || "?").charAt(0).toUpperCase()}
           </span>
           <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5">
             <p className="font-display text-lg text-foreground truncate">{name || "Unnamed"}</p>
+            <UserBadges verified={myBadges.verified} admin={myBadges.admin} />
+          </div>
             <p className="font-mono text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
         </div>

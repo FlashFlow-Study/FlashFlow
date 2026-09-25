@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Globe, Lock, Layers, User, School } from "lucide-react";
+import UserBadges from "@/components/UserBadges";
 
 function relativeDate(iso) {
   if (!iso) return null;
@@ -15,7 +16,7 @@ function relativeDate(iso) {
   return `${Math.floor(d / 30)}mo ago`;
 }
 
-export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact, creatorName }) {
+export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact, creatorName, badges }) {
   const navigate = useNavigate();
   const studied = relativeDate(lastStudied);
   return (
@@ -76,7 +77,7 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
             className={`flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground hover:text-primary transition-colors ${compact ? "mt-2" : "mt-3"}`}
           >
             <User className="w-3 h-3 text-blue-500" />
-            by {creatorName}
+            by {creatorName}{badges ? <UserBadges verified={badges.verified} admin={badges.admin} className="ml-1" /> : null}
           </button>
         )}
       </Link>

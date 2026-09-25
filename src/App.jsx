@@ -28,6 +28,7 @@ import LivePlay from './pages/LivePlay';
 import CreateAssignment from './pages/CreateAssignment';
 import Profile from './pages/Profile';
 import AdminDataPrivacy from './pages/AdminDataPrivacy';
+import AdminVerify from './pages/AdminVerify';
 import TeacherDashboard from './pages/TeacherDashboard';
 import Privacy from './pages/Privacy';
 import Login from './pages/Login';
@@ -88,6 +89,7 @@ const AuthenticatedApp = () => {
           <Route path="/assign/:classroomId" element={<CreateAssignment />} />
           <Route path="/account" element={<Account />} />
           <Route path="/admin/data-privacy" element={<AdminDataPrivacy />} />
+          <Route path="/admin/verify" element={<AdminVerify />} />
           <Route path="/teacher" element={<TeacherDashboard />} />
           </Route>
       </Route>
