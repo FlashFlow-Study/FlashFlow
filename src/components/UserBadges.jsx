@@ -11,7 +11,7 @@ export default function UserBadges({ verified, admin, className = "" }) {
         </span>
       }
       {verified &&
-      <BadgeCheck className="w-4 h-4 text-primary shrink-0" aria-label="Verified" />
+      <BadgeCheck className="text-primary shrink-0 h-5 w-5" aria-label="Verified" />
       }
     </span>);
 
