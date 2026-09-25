@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, Outlet, useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { Search, Plus, Layers, User, FolderOpen, School, Zap, GraduationCap } from "lucide-react";
+import { Search, Plus, Layers, User, FolderOpen, School, Zap, GraduationCap, Compass } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 function NavItem({ to, icon: Icon, label, active }) {
@@ -95,9 +95,21 @@ export default function AppLayout() {
             "border-primary text-primary" :
             "border-blue-200 dark:border-blue-800 text-foreground hover:border-primary hover:text-primary"}`
             }>
-            
+
             <Zap className="w-3.5 h-3.5" /> Live
           </Link>
+          {user &&
+          <Link
+            to="/discover"
+            className={`hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 border font-mono text-[11px] uppercase tracking-widest transition-colors rounded-md ${
+            location.pathname === "/discover" ?
+            "border-primary text-primary" :
+            "border-blue-200 dark:border-blue-800 text-foreground hover:border-primary hover:text-primary"}`
+            }>
+
+            <Compass className="w-3.5 h-3.5" /> Discover
+          </Link>
+          }
           <Link
             to="/create"
             className="hidden md:inline-flex items-center justify-center px-3 py-2 border border-blue-200 dark:border-blue-800 hover:border-primary hover:text-primary transition-colors rounded-md text-[hsl(var(--popover-foreground))] bg-[hsl(var(--primary))]"

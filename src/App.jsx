@@ -16,6 +16,7 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import EditDeck from './pages/EditDeck';
 import Search from './pages/Search';
+import Discover from './pages/Discover';
 import MyDecks from './pages/MyDecks';
 import Classrooms from './pages/Classrooms';
 import ClassroomDetail from './pages/ClassroomDetail';
@@ -79,6 +80,7 @@ const AuthenticatedApp = () => {
           <Route path="/create" element={<CreateDeck />} />
           <Route path="/edit/:id" element={<EditDeck />} />
           <Route path="/my-decks" element={<MyDecks />} />
+          <Route path="/discover" element={<Discover />} />
           <Route path="/classrooms" element={<Classrooms />} />
           <Route path="/classroom/:id" element={<ClassroomDetail />} />
           <Route path="/join" element={<Join />} />
