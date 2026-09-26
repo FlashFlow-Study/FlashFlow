@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Account() {
+  useSeo("FlashFlow - Manage Your Account", "All account settings.");
   const { user, logout, checkUserAuth } = useAuth();
   const [name, setName] = useState(user?.display_name || user?.full_name || "");
   const [savingName, setSavingName] = useState(false);
