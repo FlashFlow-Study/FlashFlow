@@ -15,6 +15,7 @@ import { completionStatus, statusBadgeClass, latenessSuffix, fmtDate } from "@/l
 import AssignmentFormDialog from "@/components/teacher/AssignmentFormDialog";
 import AssignmentOverview from "@/components/teacher/AssignmentOverview";
 import StudentDetailDialog from "@/components/teacher/StudentDetailDialog";
+import { useSeo } from "@/lib/useSeo";
 
 const STATUS_RANK = { overdue: 0, late: 1, done: 2, notdone: 3 };
 
