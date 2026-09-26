@@ -35,6 +35,7 @@ function assignmentDueStatus(assignment, completions, members) {
 }
 
 export default function TeacherDashboard() {
+  useSeo("FlashFlow - Teacher Dashboard", "Manage your student's tasks; all in one place.");
   const { user } = useAuth();
   const [classrooms, setClassrooms] = useState([]);
   const [selectedId, setSelectedId] = useState("");
