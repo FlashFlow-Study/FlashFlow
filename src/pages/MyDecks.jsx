@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import DeckCard from "@/components/DeckCard";
 
 export default function MyDecks() {
+  useSeo("FlashFlow - My Decks", "All of your created decks, managed into folders.");
   const { user } = useAuth();
   const [decks, setDecks] = useState([]);
   const [counts, setCounts] = useState({});
