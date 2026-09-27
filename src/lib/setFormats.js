@@ -131,4 +131,4 @@ export function downloadFile(filename, content, mime) {
 
 export const FORMAT_EXT = { csv: "csv", json: "json", tab: "txt" };
 export const FORMAT_MIME = { csv: "text/csv", json: "application/json", tab: "text/plain" };
-export const FORMAT_LABEL = { csv: "CSV", json: "JSON", tab: "Tab-separated" };
+export const FORMAT_LABEL = { csv: "CSV", json: "JSON", tab: "Tab-separated (Quizlet Format)" };
