@@ -115,7 +115,7 @@ export default function ImportPanel({ onParsed, onError }) {
       <p className="mt-3 font-mono text-[11px] text-muted-foreground">
         {format === "csv" && "Two columns: front, back. A header row is optional."}
         {format === "json" && "A deck object with a cards array, or an array of {front, back}."}
-        {format === "tab" && "One card per line, term and definition separated by a tab."}
+        {format === "tab" && "One card per line, term and definition separated by a tab. Same style used in Quizlet."}
       </p>
     </div>
   );
