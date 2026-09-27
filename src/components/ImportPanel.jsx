@@ -69,7 +69,7 @@ export default function ImportPanel({ onParsed, onError }) {
               format === "json"
                 ? '{ "title": "...", "cards": [{ "front": "...", "back": "..." }] }'
                 : format === "tab"
-                ? "term\tdefinition"
+                ? "term/tdefinition"
                 : "front,back"
             }
             className="w-full px-4 py-3 bg-background border border-slate-200 font-body text-sm focus:outline-none focus:border-primary rounded-md resize-none"
