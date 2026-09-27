@@ -22,7 +22,7 @@ export default function ImportPanel({ onParsed, onError }) {
 
   const parse = () => {
     if (!text.trim()) {
-      onError?.("Paste text or upload a file first.");
+      onError?.("No values to create a set from. Paste text or upload a file first.");
       return;
     }
     try {
