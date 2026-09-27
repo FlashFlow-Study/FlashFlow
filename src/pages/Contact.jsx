@@ -30,7 +30,7 @@ export default function Contact() {
         name: name.trim(),
         email: email.trim(),
         subject: subject.trim(),
-        message: message.trim(),
+        message: message.trim()
       });
       setSent(true);
     } catch (err) {
@@ -60,7 +60,7 @@ export default function Contact() {
           <div className="flex items-start gap-3 p-4 border border-border bg-card rounded-md">
             <Mail className="w-5 h-5 text-primary mt-0.5" />
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Email</p>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Support email</p>
               <a href="mailto:support@flashflowstudy.com" className="font-body text-sm text-foreground hover:text-primary transition-colors">
                 support@flashflowstudy.com
               </a>
@@ -76,69 +76,69 @@ export default function Contact() {
         </div>
 
         <form onSubmit={submit} className="md:col-span-2 space-y-4 p-5 border border-border bg-card rounded-md">
-          {sent ? (
-            <div className="text-center py-8">
+          {sent ?
+          <div className="text-center py-8">
               <MessageSquare className="w-8 h-8 text-positive mx-auto mb-3" />
               <h3 className="font-display text-2xl text-foreground">Message sent</h3>
               <p className="mt-2 font-body text-sm text-muted-foreground">Thanks for reaching out — we'll be in touch soon.</p>
               <button onClick={() => setSent(false)} className="mt-5 font-mono text-xs uppercase tracking-widest text-primary hover:underline">
                 Send another →
               </button>
-            </div>
-          ) : (
-            <>
+            </div> :
+
+          <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Name</label>
                   <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
-                    placeholder="Your name"
-                  />
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+                  placeholder="Your name" />
+                
                 </div>
                 <div>
                   <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Email</label>
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
-                    placeholder="you@example.com"
-                  />
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+                  placeholder="you@example.com" />
+                
                 </div>
               </div>
               <div>
                 <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Subject (optional)</label>
                 <input
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
-                  placeholder="What's this about?"
-                />
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+                placeholder="What's this about?" />
+              
               </div>
               <div>
                 <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Message</label>
                 <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={5}
-                  className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary resize-none rounded-md"
-                  placeholder="How can we help?"
-                />
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                rows={5}
+                className="w-full mt-1 px-4 py-3 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary resize-none rounded-md"
+                placeholder="How can we help?" />
+              
               </div>
               {error && <p className="font-body text-sm text-destructive">{error}</p>}
               <button
-                type="submit"
-                disabled={sending}
-                className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md disabled:opacity-60 disabled:cursor-not-allowed"
-              >
+              type="submit"
+              disabled={sending}
+              className="inline-flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md disabled:opacity-60 disabled:cursor-not-allowed">
+              
                 <Send className="w-4 h-4" /> {sending ? "Sending…" : "Send message"}
               </button>
             </>
-          )}
+          }
         </form>
       </div>
-    </div>
-  );
+    </div>);
+
 }
