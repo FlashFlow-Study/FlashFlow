@@ -44,7 +44,7 @@ We aim to:
 - Provide appropriate controls for schools and administrators
 - Protect user information through appropriate technical and organisational measures
 
-For information about how FlashFlow Study handles data, see our **Privacy & Data Information Sheet**.
+For information about how FlashFlow Study handles data, see our [**Privacy & Data Information Page**](https://flashflowstudy.com/privacy), which is regularly updated when necessary.
 
 > **Note:** Privacy and data-protection arrangements may vary depending on how FlashFlow Study is deployed by a school or organisation.
 
