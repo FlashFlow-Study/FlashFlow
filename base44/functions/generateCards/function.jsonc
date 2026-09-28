@@ -1,0 +1,4 @@
+{
+  "name": "generateCards",
+  "entry": "entry.ts"
+}
