@@ -109,7 +109,7 @@ export default function Privacy() {
       <Section icon={ShieldCheck} title="Changes to this policy">
         <p>
           We may update this policy as the platform evolves. The effective date above reflects the most recent
-          revision. Continued use of FlashFlow after a change means you accept the updated policy.
+          revision. You will be emailed an update if this happens. Continued use of FlashFlow after a change means you accept the updated policy.
         </p>
       </Section>
 
