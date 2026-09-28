@@ -98,10 +98,10 @@ export default function Privacy() {
         </p>
         <p>
           Teachers and school administrators can perform export and erasure on behalf of a user through the internal
-          Data Privacy tools. When data is erased, it is permanently removed from the platform and cannot be recovered.
+          Data Privacy tools held by our administrators. When data is erased, it is permanently removed from the platform and cannot be recovered.
         </p>
         <p>
-          To request export or deletion of your data, ask your school administrator or{" "}
+          To request export or deletion of your data, ask your school administrator to contact us on your behalf, or{" "}
           <Link to="/contact" className="text-primary hover:underline">contact us</Link>.
         </p>
       </Section>
