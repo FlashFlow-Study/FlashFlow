@@ -49,12 +49,31 @@ export default function Home() {
         setAssignments(myAssignments);
         setCompletions(myCompletions);
         const c = {};
-        await Promise.all(
-          decks.map(async (d) => {
-            const list = await base44.entities.Card.filter({ deck_id: d.id }, undefined, 0);
-            c[d.id] = list.length;
-          })
+        const userClassroomIds = new Set([
+          ...myClassrooms.map((cc) => cc.id),
+          ...myMemberships.map((m) => m.classroom_id),
+        ]);
+        const displayed = decks.filter(
+          (d) =>
+            d.created_by_id === user?.id ||
+            (d.is_public && d.created_by_id !== user?.id) ||
+            (d.classroom_id && d.created_by_id !== user?.id && userClassroomIds.has(d.classroom_id)) ||
+            recentIds.includes(d.id)
         );
+        // Fetch card counts in small batches to respect API rate limits.
+        for (let i = 0; i < displayed.length; i += 8) {
+          const batch = displayed.slice(i, i + 8);
+          await Promise.all(
+            batch.map(async (d) => {
+              try {
+                const list = await base44.entities.Card.filter({ deck_id: d.id }, undefined, 0);
+                c[d.id] = list.length;
+              } catch {
+                /* ignore single-deck count failure */
+              }
+            })
+          );
+        }
         setCounts(c);
       } finally {
         setLoading(false);
