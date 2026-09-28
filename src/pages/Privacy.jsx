@@ -93,7 +93,7 @@ export default function Privacy() {
 
       <Section icon={Trash2} title="Your rights & data deletion">
         <p>
-          You have the right to access, export, correct, and delete your personal data. You can export or erase all
+          Under the Data Protection Act 2018 (UK) and/or the GDPR (EU), you have the right to access, export, correct, and delete your personal data. You can export or erase all
           data tied to an account — including decks, cards, classes, assignments, and study history — at any time.
         </p>
         <p>
