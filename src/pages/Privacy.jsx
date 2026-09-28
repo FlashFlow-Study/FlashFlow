@@ -28,7 +28,7 @@ export default function Privacy() {
     <div className="max-w-3xl mx-auto px-4 md:px-8 py-10 md:py-16">
       <div className="mb-10">
         <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          Effective {new Date().toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })}
+          Effective from 28 September 2026
         </span>
         <h1 className="mt-2 font-display text-3xl md:text-5xl font-bold text-foreground tracking-tight leading-[1.05]">
           Privacy Policy
