@@ -35,13 +35,27 @@ export default function Home() {
     let cancelled = false;
     (async () => {
       try {
+        // Retry once after a short backoff on a transient API rate limit, and
+        // degrade to an empty result if it still fails — so the home page
+        // recovers instead of crashing on a rate-limited request.
+        const withRetry = async (fn) => {
+          try {
+            return await fn();
+          } catch (e) {
+            if (cancelled || !String(e?.message || e).includes("Rate limit")) throw e;
+            await new Promise((r) => setTimeout(r, 2000));
+            if (cancelled) throw e;
+            return await fn();
+          }
+        };
+        const safe = (p) => p.catch(() => []);
         const [decks, sess, myMemberships, myClassrooms, myAssignments, myCompletions] = await Promise.all([
-          base44.entities.Deck.list("-created_date", 100),
-          base44.entities.StudySession.list("-created_date", 100).catch(() => []),
-          base44.entities.ClassroomMembership.filter({ student_email: user?.email }).catch(() => []),
-          base44.entities.Classroom.filter({ created_by_id: user?.id }).catch(() => []),
-          base44.entities.Assignment.list("-created_date", 100).catch(() => []),
-          base44.entities.AssignmentCompletion.filter({ student_email: user?.email }).catch(() => []),
+          safe(withRetry(() => base44.entities.Deck.list("-created_date", 100))),
+          safe(withRetry(() => base44.entities.StudySession.list("-created_date", 100))),
+          safe(withRetry(() => base44.entities.ClassroomMembership.filter({ student_email: user?.email }))),
+          safe(withRetry(() => base44.entities.Classroom.filter({ created_by_id: user?.id }))),
+          safe(withRetry(() => base44.entities.Assignment.list("-created_date", 100))),
+          safe(withRetry(() => base44.entities.AssignmentCompletion.filter({ student_email: user?.email }))),
         ]);
         if (cancelled) return;
         setAllDecks(decks);
