@@ -32,6 +32,7 @@ export default function Home() {
   const { creatorName } = useCreators(allDecks);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         const [decks, sess, myMemberships, myClassrooms, myAssignments, myCompletions] = await Promise.all([
@@ -42,6 +43,7 @@ export default function Home() {
           base44.entities.Assignment.list("-created_date", 100).catch(() => []),
           base44.entities.AssignmentCompletion.filter({ student_email: user?.email }).catch(() => []),
         ]);
+        if (cancelled) return;
         setAllDecks(decks);
         setSessions(sess);
         setMemberships(myMemberships);
@@ -61,12 +63,14 @@ export default function Home() {
             recentIds.includes(d.id)
         );
         // Fetch card counts in small batches to respect API rate limits.
-        for (let i = 0; i < displayed.length; i += 8) {
+        for (let i = 0; i < displayed.length && !cancelled; i += 8) {
           const batch = displayed.slice(i, i + 8);
           await Promise.all(
             batch.map(async (d) => {
+              if (cancelled) return;
               try {
                 const list = await base44.entities.Card.filter({ deck_id: d.id }, undefined, 0);
+                if (cancelled) return;
                 c[d.id] = list.length;
               } catch {
                 /* ignore single-deck count failure */
@@ -74,11 +78,12 @@ export default function Home() {
             })
           );
         }
-        setCounts(c);
+        if (!cancelled) setCounts(c);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+    return () => { cancelled = true; };
   }, [user?.email]);
 
   const mine = allDecks.filter((d) => d.created_by_id === user?.id);
