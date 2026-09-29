@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
+// Cards rarely change mid-game, so cache them briefly per deck to avoid
+// re-reading the whole deck on every poll from every player.
+const cardCache = new Map<string, { at: number; cards: any[] }>();
+const CARD_TTL_MS = 60000;
+
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -12,9 +17,16 @@ export default async function(req) {
     if (!game) return Response.json({ error: 'Game not found' }, { status: 404 });
 
     const players = await base44.asServiceRole.entities.LivePlayer.filter({ game_id }, 'joined_at', 200);
-    const cards = game.card_order.length
-      ? await base44.asServiceRole.entities.Card.filter({ deck_id: game.deck_id }, 'order', 200)
-      : [];
+    let cards: any[] = [];
+    if (game.card_order.length) {
+      const hit = cardCache.get(game.deck_id);
+      if (hit && Date.now() - hit.at < CARD_TTL_MS) {
+        cards = hit.cards;
+      } else {
+        cards = await base44.asServiceRole.entities.Card.filter({ deck_id: game.deck_id }, 'order', 200);
+        cardCache.set(game.deck_id, { at: Date.now(), cards });
+      }
+    }
     const cardMap = {};
     cards.forEach(c => { cardMap[c.id] = c; });
     const totalRounds = game.card_order.length;
