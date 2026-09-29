@@ -252,6 +252,7 @@ export default function Study() {
             isTwoLanguages={deck.is_two_languages}
             sourceLang={resolvedSource}
             targetLang={resolvedTarget}
+            deck={deck}
           />
         )}
       </main>
