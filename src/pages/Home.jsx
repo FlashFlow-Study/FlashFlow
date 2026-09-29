@@ -55,28 +55,23 @@ export default function Home() {
           ...myClassrooms.map((cc) => cc.id),
           ...myMemberships.map((m) => m.classroom_id),
         ]);
-        const displayed = decks.filter(
-          (d) =>
-            d.created_by_id === user?.id ||
-            (d.is_public && d.created_by_id !== user?.id) ||
-            (d.classroom_id && d.created_by_id !== user?.id && userClassroomIds.has(d.classroom_id)) ||
-            recentIds.includes(d.id)
+        const isMine = (d) => d.created_by_id === user?.id;
+        const isClassroom = (d) => d.classroom_id && d.created_by_id !== user?.id && userClassroomIds.has(d.classroom_id);
+        const isPub = (d) => d.is_public && d.created_by_id !== user?.id;
+        const counted = decks.filter(
+          (d) => isMine(d) || isClassroom(d) || recentIds.includes(d.id) || (query && isPub(d))
         );
-        // Fetch card counts in small batches to respect API rate limits.
-        for (let i = 0; i < displayed.length && !cancelled; i += 8) {
-          const batch = displayed.slice(i, i + 8);
-          await Promise.all(
-            batch.map(async (d) => {
-              if (cancelled) return;
-              try {
-                const list = await base44.entities.Card.filter({ deck_id: d.id }, undefined, 0);
-                if (cancelled) return;
-                c[d.id] = list.length;
-              } catch {
-                /* ignore single-deck count failure */
-              }
-            })
-          );
+        // One bulk request for all displayed decks' cards, counted client-side,
+        // instead of one request per deck (which exceeded the API rate limit).
+        const countedIds = counted.map((d) => d.id);
+        if (countedIds.length && !cancelled) {
+          try {
+            const cards = await base44.entities.Card.filter({ deck_id: { $in: countedIds } }, undefined, 1000);
+            if (cancelled) return;
+            cards.forEach((card) => { c[card.deck_id] = (c[card.deck_id] || 0) + 1; });
+          } catch {
+            /* ignore — card counts simply won't show */
+          }
         }
         if (!cancelled) setCounts(c);
       } finally {
