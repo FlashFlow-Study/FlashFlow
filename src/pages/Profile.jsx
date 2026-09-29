@@ -30,12 +30,15 @@ export default function Profile() {
         );
         setDecks(userDecks);
         const c = {};
-        await Promise.all(
-          userDecks.map(async (d) => {
-            const list = await base44.entities.Card.filter({ deck_id: d.id }, undefined, 0);
-            c[d.id] = list.length;
-          })
-        );
+        const deckIds = userDecks.map((d) => d.id);
+        if (deckIds.length) {
+          try {
+            const cards = await base44.entities.Card.filter({ deck_id: { $in: deckIds } }, undefined, 1000);
+            cards.forEach((card) => { c[card.deck_id] = (c[card.deck_id] || 0) + 1; });
+          } catch {
+            /* ignore — card counts simply won't show */
+          }
+        }
         setCounts(c);
 
         if (user && userId !== user.id) {
