@@ -4,6 +4,7 @@ import { Zap, Check, X, Trophy, Crown, Loader } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useLiveGame } from "@/hooks/useLiveGame";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
+import BetaBadge from "@/components/BetaBadge";
 
 function Center({ children }) {
   return (
@@ -73,6 +74,7 @@ export default function LivePlay() {
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground shrink-0">
             {game.status === "lobby" ? "Lobby" : game.mode === "race" ? "Race" : "Team"}
           </span>
+          <BetaBadge className="ml-1 shrink-0" />
         </div>
       </header>
 

@@ -2,6 +2,7 @@ import React from "react";
 import { Link, Outlet, useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { Search, Plus, Layers, User, FolderOpen, School, Zap, GraduationCap, Compass } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
+import BetaBadge from "@/components/BetaBadge";
 
 function NavItem({ to, icon: Icon, label, active }) {
   return (
@@ -96,7 +97,7 @@ export default function AppLayout() {
             "border-blue-200 dark:border-blue-800 text-foreground hover:border-primary hover:text-primary"}`
             }>
 
-            <Zap className="w-3.5 h-3.5" /> Live
+            <Zap className="w-3.5 h-3.5" /> Live <BetaBadge className="ml-1" />
           </Link>
           {user &&
           <Link
@@ -159,7 +160,7 @@ export default function AppLayout() {
               Contact
             </Link>
             <Link to="/live" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-              Live
+              Live <BetaBadge className="ml-1" />
             </Link>
             <Link to="/privacy" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
               Privacy

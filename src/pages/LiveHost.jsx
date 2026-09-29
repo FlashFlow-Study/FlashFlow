@@ -4,6 +4,7 @@ import { Zap, Copy, Check, Play, ArrowRight, Trophy, Crown, Users, Square } from
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useLiveGame } from "@/hooks/useLiveGame";
+import BetaBadge from "@/components/BetaBadge";
 
 const MODE_LABEL = { race: "Race", team: "Team" };
 
@@ -73,6 +74,7 @@ export default function LiveHost() {
             <span className="ml-2 shrink-0 font-mono text-[10px] uppercase tracking-widest text-primary border border-blue-200 dark:border-blue-800 rounded px-2 py-0.5">
               {MODE_LABEL[game.mode]}
             </span>
+            <BetaBadge className="ml-2 shrink-0" />
           </div>
           <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground shrink-0">{game.status}</span>
         </div>

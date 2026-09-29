@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Zap, Users, Layers, ArrowRight } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useSeo } from "@/lib/useSeo";
+import BetaBadge from "@/components/BetaBadge";
 
 const MODES = [
   { id: "race", label: "Race", desc: "Everyone answers the same card; faster correct answers score more. Host advances card by card." },
@@ -42,7 +43,7 @@ export default function LiveCreate() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
-      <span className="font-mono text-[10px] uppercase tracking-widest text-primary">FlashFlow Live</span>
+      <span className="font-mono text-[10px] uppercase tracking-widest text-primary">FlashFlow Live <BetaBadge className="ml-1 align-middle" /></span>
       <h1 className="font-display text-4xl text-foreground mt-2 tracking-tight">Host a live game</h1>
       <p className="mt-3 font-body text-sm text-muted-foreground max-w-lg">
         Pick a deck and a mode, then project the lobby and share the join code.
@@ -86,7 +87,7 @@ export default function LiveCreate() {
                 mode === m.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary"
               }`}
             >
-              <p className="font-display text-lg text-foreground">{m.label}</p>
+              <p className="font-display text-lg text-foreground inline-flex items-center gap-2">{m.label} <BetaBadge /></p>
               <p className="mt-1 font-body text-xs text-muted-foreground">{m.desc}</p>
             </button>
           ))}

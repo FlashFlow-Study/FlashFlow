@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Zap, ArrowRight, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useSeo } from "@/lib/useSeo";
+import BetaBadge from "@/components/BetaBadge";
 
 export default function LiveJoin() {
   useSeo("FlashFlow Live — Join a game", "Join a live FlashFlow study game with a code from your host.");
@@ -40,7 +41,7 @@ export default function LiveJoin() {
       </Link>
 
       <span className="block mt-6 font-mono text-[10px] uppercase tracking-widest text-primary">
-        FlashFlow Live
+        FlashFlow Live <BetaBadge className="ml-1 align-middle" />
       </span>
       <h1 className="font-display text-5xl text-foreground mt-2 tracking-tight">Join a game</h1>
       <p className="mt-3 font-body text-sm text-muted-foreground max-w-lg">
