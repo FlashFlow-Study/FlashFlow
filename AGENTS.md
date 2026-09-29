@@ -4,7 +4,7 @@
 
 This is a Base44 app repository. Treat it as user-owned application code, keep changes focused on the user's request, and preserve existing project conventions.
 
-Start with `README.md` for local setup, environment variables, and publish workflow.
+Start with `READMEforAgents.md` for local setup, environment variables, and publish workflow.
 
 ## Base44 References
 
