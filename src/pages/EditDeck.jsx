@@ -9,6 +9,7 @@ import { suggestTags } from "@/lib/suggestTags";
 import LanguagePairSelect from "@/components/LanguagePairSelect";
 import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG, resolveDeckLanguages } from "@/lib/deckLanguages";
 import SwapSidesButton from "@/components/SwapSidesButton";
+import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 import { toast } from "@/components/ui/use-toast";
 
 export default function EditDeck() {
@@ -28,6 +29,7 @@ export default function EditDeck() {
   const [selectedFolder, setSelectedFolder] = useState("");
   const [folders, setFolders] = useState([]);
   const [originalIds, setOriginalIds] = useState([]);
+  const [deckClassroomMembers, setDeckClassroomMembers] = useState([]);
   const activeInputRef = React.useRef(null);
 
   const suggestions = useMemo(
@@ -52,6 +54,7 @@ export default function EditDeck() {
         setSourceLang(d.source_lang || "");
         setTargetLang(d.target_lang || "");
         setSelectedFolder(d.folder_id || "");
+        setDeckClassroomMembers(d.classroom_members || []);
         const [c, folderList] = await Promise.all([
           base44.entities.Card.filter({ deck_id: id }, "order", 200),
           base44.entities.Folder.list("-created_date", 100).catch(() => []),
@@ -125,6 +128,7 @@ export default function EditDeck() {
       if (removedIds.length) await base44.entities.Card.deleteMany({ id: { $in: removedIds } });
       if (toUpdate.length) await base44.entities.Card.bulkUpdate(toUpdate);
       if (toCreate.length) await base44.entities.Card.bulkCreate(toCreate);
+      await syncDeckCardsVisibility(id, isPublic, deckClassroomMembers);
       navigate(`/deck/${id}`);
     } catch (e) {
       setError(e.response?.data?.error || "Couldn't save your changes.");

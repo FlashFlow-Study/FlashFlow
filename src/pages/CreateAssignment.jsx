@@ -79,6 +79,7 @@ export default function CreateAssignment() {
         goal_type: goalType,
         goal_value: Number(goalValue),
         due_date: dueDate || undefined,
+        classroom_members: classroom?.member_user_ids || [],
       });
       navigate(`/classroom/${classroomId}`);
     } catch (e) {

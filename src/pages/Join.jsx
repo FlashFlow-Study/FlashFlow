@@ -21,57 +21,22 @@ export default function Join() {
     }
     setJoining(true);
     try {
-      const normalizedCode = code.trim().toUpperCase();
-      const classrooms = await base44.entities.Classroom.filter({
-        join_code: normalizedCode,
+      const res = await base44.functions.invoke("joinClassroom", {
+        join_code: code.trim().toUpperCase(),
       });
-      if (!classrooms.length) {
-        setError("Invalid join code.");
+      const data = res?.data || {};
+      if (data.error) {
+        setError(data.error);
         return;
       }
-      const classroom = classrooms[0];
-
-      const existing = await base44.entities.ClassroomMembership.filter({
-        classroom_id: classroom.id,
-        student_email: user.email,
-      });
-
-      // Enforce a maximum of 10 joined classrooms per student.
-      const alreadyJoinedHere = existing.some((m) => m.status === "joined");
-      if (!alreadyJoinedHere) {
-        const myJoined = await base44.entities.ClassroomMembership.filter({
-          student_email: user.email,
-          status: "joined",
-        });
-        if (myJoined.length >= 10) {
-          setError("You can only be in up to 10 classes at a time. Leave one before joining another.");
-          return;
-        }
+      const classroom = data.classroom;
+      if (!classroom) {
+        setError("Couldn't join that classroom.");
+        return;
       }
-
-      if (existing.length > 0) {
-        const membership = existing[0];
-        const patch = {};
-        if (membership.status !== "joined") patch.status = "joined";
-        if (!membership.user_id) patch.user_id = user.id;
-        if (!membership.teacher_id) patch.teacher_id = classroom.created_by_id;
-        if (Object.keys(patch).length) {
-          await base44.entities.ClassroomMembership.update(membership.id, patch);
-        }
-      } else {
-        await base44.entities.ClassroomMembership.create({
-          classroom_id: classroom.id,
-          classroom_name: classroom.name,
-          student_email: user.email,
-          user_id: user.id,
-          teacher_id: classroom.created_by_id,
-          status: "joined",
-        });
-      }
-
       setSuccess(classroom);
     } catch (e) {
-      setError(e.response?.data?.error || "Couldn't join that classroom.");
+      setError(e?.response?.data?.error || e?.data?.error || "Couldn't join that classroom.");
     } finally {
       setJoining(false);
     }

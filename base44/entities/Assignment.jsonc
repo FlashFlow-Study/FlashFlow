@@ -56,6 +56,13 @@
     "due_date": {
       "type": "string",
       "format": "date"
+    },
+    "classroom_members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
     }
   },
   "required": [
@@ -67,7 +74,16 @@
     "goal_value"
   ],
   "rls": {
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.classroom_members": "{{user.id}}"
+        }
+      ]
+    },
     "create": {
       "created_by_id": "{{user.id}}"
     },

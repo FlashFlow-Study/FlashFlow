@@ -24,6 +24,17 @@
         "swapped"
       ],
       "default": "normal"
+    },
+    "deck_is_public": {
+      "type": "boolean",
+      "default": false
+    },
+    "deck_classroom_members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
     }
   },
   "required": [
@@ -32,7 +43,19 @@
     "back"
   ],
   "rls": {
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.deck_is_public": true
+        },
+        {
+          "data.deck_classroom_members": "{{user.id}}"
+        }
+      ]
+    },
     "create": {
       "created_by_id": "{{user.id}}"
     },

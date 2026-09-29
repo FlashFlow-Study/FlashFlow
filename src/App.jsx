@@ -31,15 +31,18 @@ import AdminDataPrivacy from './pages/AdminDataPrivacy';
 import AdminVerify from './pages/AdminVerify';
 import TeacherDashboard from './pages/TeacherDashboard';
 import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppLayout from '@/components/AppLayout';
+import BannedScreen from '@/components/BannedScreen';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, ban } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -61,6 +64,9 @@ const AuthenticatedApp = () => {
     }
   }
 
+  // Block banned users from using the app.
+  if (ban) return <BannedScreen reason={ban?.reason} />;
+
   // Render the main app
   return (
     <Routes>
@@ -73,6 +79,7 @@ const AuthenticatedApp = () => {
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
         <Route path="/search" element={<Search />} />
         <Route path="/live" element={<LiveJoin />} />
         <Route path="/deck/:id" element={<DeckDetail />} />
@@ -89,6 +96,7 @@ const AuthenticatedApp = () => {
           <Route path="/assign/:classroomId" element={<CreateAssignment />} />
           <Route path="/account" element={<Account />} />
           <Route path="/admin/data-privacy" element={<AdminDataPrivacy />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/admin/verify" element={<AdminVerify />} />
           <Route path="/teacher" element={<TeacherDashboard />} />
           </Route>

@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [ban, setBan] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
 
   useEffect(() => {
@@ -84,8 +85,19 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
-      setIsLoadingAuth(false);
       setAuthChecked(true);
+      // Check whether the current user has been banned; a banned user is
+      // blocked from the app on this and every subsequent load. Keep the app
+      // in its loading state until this resolves so a banned user never sees
+      // the app before being blocked.
+      try {
+        const banRecs = await base44.entities.Ban.filter({ user_id: currentUser.id });
+        setBan(banRecs && banRecs.length ? banRecs[0] : null);
+      } catch {
+        setBan(null);
+      } finally {
+        setIsLoadingAuth(false);
+      }
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
@@ -105,6 +117,7 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
+    setBan(null);
     
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
@@ -129,6 +142,7 @@ export const AuthProvider = ({ children }) => {
       authError,
       appPublicSettings,
       authChecked,
+      ban,
       logout,
       navigateToLogin,
       checkUserAuth,

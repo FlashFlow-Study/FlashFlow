@@ -160,6 +160,8 @@ export default function CreateDeck() {
           back: c.back.trim(),
           order: i,
           orientation: c.orientation || "normal",
+          deck_is_public: selectedClassroom ? false : isPublic,
+          deck_classroom_members: classroomMembers,
         }))
       );
       navigate(`/deck/${deck.id}`);

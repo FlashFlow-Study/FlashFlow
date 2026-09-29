@@ -26,6 +26,19 @@ export default async function(req: Request): Promise<Response> {
       return Response.json({ classroom, already_joined: true });
     }
 
+    // Enforce a maximum of 10 joined classrooms per student (only when not already joined here).
+    if (!membership || membership.status !== 'joined') {
+      const myJoined = await base44.asServiceRole.entities.ClassroomMembership.filter({
+        student_email: user.email,
+        status: 'joined'
+      });
+      if (myJoined.length >= 10) {
+        return Response.json({
+          error: 'You can only be in up to 10 classes at a time. Leave one before joining another.'
+        }, { status: 400 });
+      }
+    }
+
     if (membership) {
       // Update invited → joined
       membership = await base44.asServiceRole.entities.ClassroomMembership.update(membership.id, {
@@ -45,19 +58,47 @@ export default async function(req: Request): Promise<Response> {
 
     // Add user to classroom.member_user_ids
     const memberIds = classroom.member_user_ids || [];
-    if (!memberIds.includes(user.id)) {
+    const memberUserIds = memberIds.includes(user.id) ? memberIds : [...memberIds, user.id];
+    if (memberUserIds !== memberIds) {
       await base44.asServiceRole.entities.Classroom.update(classroom.id, {
-        member_user_ids: [...memberIds, user.id]
+        member_user_ids: memberUserIds
       });
     }
 
-    // Add user to classroom_members on all decks in this classroom
+    // Add user to classroom_members on all decks in this classroom, and keep
+    // each deck's cards' denormalized deck_classroom_members in sync so the new
+    // member can read the cards (Card read RLS uses that field).
     const decks = await base44.asServiceRole.entities.Deck.filter({ classroom_id: classroom.id });
     if (decks.length) {
       await base44.asServiceRole.entities.Deck.bulkUpdate(
         decks.map(d => ({
           id: d.id,
           classroom_members: Array.from(new Set([...(d.classroom_members || []), user.id]))
+        }))
+      );
+      for (const d of decks) {
+        const newMembers = Array.from(new Set([...(d.classroom_members || []), user.id]));
+        const cards = await base44.asServiceRole.entities.Card.filter({ deck_id: d.id }, undefined, 1000);
+        if (cards.length) {
+          await base44.asServiceRole.entities.Card.bulkUpdate(
+            cards.map(c => ({
+              id: c.id,
+              deck_classroom_members: newMembers,
+              deck_is_public: !!d.is_public
+            }))
+          );
+        }
+      }
+    }
+
+    // Keep assignments' denormalized classroom_members in sync so the new
+    // member can read assignments for this class (Assignment read RLS uses it).
+    const assignments = await base44.asServiceRole.entities.Assignment.filter({ classroom_id: classroom.id });
+    if (assignments.length) {
+      await base44.asServiceRole.entities.Assignment.bulkUpdate(
+        assignments.map(a => ({
+          id: a.id,
+          classroom_members: memberUserIds
         }))
       );
     }

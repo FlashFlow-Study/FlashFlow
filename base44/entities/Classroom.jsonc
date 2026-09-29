@@ -27,7 +27,16 @@
     "join_code"
   ],
   "rls": {
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_ids": "{{user.id}}"
+        }
+      ]
+    },
     "create": {
       "created_by_id": "{{user.id}}"
     },

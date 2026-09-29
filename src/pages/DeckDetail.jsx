@@ -10,6 +10,7 @@ import { useCreators } from "@/hooks/useCreators";
 import { addRecentDeck } from "@/lib/recentDecks";
 import SpeakButton from "@/components/SpeakButton";
 import { resolveDeckLanguages } from "@/lib/deckLanguages";
+import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 
 export default function DeckDetail() {
   const { id } = useParams();
@@ -59,6 +60,7 @@ export default function DeckDetail() {
   const togglePublic = async () => {
     const updated = await base44.entities.Deck.update(id, { is_public: !deck.is_public });
     setDeck(updated);
+    syncDeckCardsVisibility(id, updated.is_public, deck.classroom_members).catch(() => {});
   };
 
   const remove = async () => {

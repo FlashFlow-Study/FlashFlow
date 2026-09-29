@@ -8,6 +8,7 @@ import {
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import AssignmentCard from "@/components/AssignmentCard";
+import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 
 export default function ClassroomDetail() {
   const { id } = useParams();
@@ -62,6 +63,11 @@ export default function ClassroomDetail() {
             .map((dd) => ({ id: dd.id, classroom_members: joinedIds }));
           if (updates.length) {
             base44.entities.Deck.bulkUpdate(updates).catch(() => {});
+            // Keep each deck's cards' denormalized classroom members in sync.
+            updates.forEach((u) => {
+              const dd = d.find((x) => x.id === u.id);
+              syncDeckCardsVisibility(u.id, dd?.is_public, joinedIds).catch(() => {});
+            });
           }
         }
         await loadAssignments();
@@ -164,7 +170,26 @@ export default function ClassroomDetail() {
           id: d.id,
           classroom_members: (d.classroom_members || []).filter((uid) => uid !== member.user_id),
         }));
-        if (updatedDecks.length) await base44.entities.Deck.bulkUpdate(updatedDecks);
+        if (updatedDecks.length) {
+          await base44.entities.Deck.bulkUpdate(updatedDecks);
+          // Keep cards' denormalized classroom members in sync after removal.
+          updatedDecks.forEach((u) => {
+            const dd = decks.find((x) => x.id === u.id);
+            syncDeckCardsVisibility(u.id, dd?.is_public, u.classroom_members).catch(() => {});
+          });
+        }
+        // Remove the user from assignments' denormalized classroom_members too.
+        const aUpdates = assignments.map((a) => ({
+          id: a.id,
+          classroom_members: (a.classroom_members || []).filter((uid) => uid !== member.user_id),
+        }));
+        if (aUpdates.length) base44.entities.Assignment.bulkUpdate(aUpdates).catch(() => {});
+        setAssignments((prev) =>
+          prev.map((a) => ({
+            ...a,
+            classroom_members: (a.classroom_members || []).filter((uid) => uid !== member.user_id),
+          }))
+        );
         setDecks((prev) =>
           prev.map((d) => ({
             ...d,
