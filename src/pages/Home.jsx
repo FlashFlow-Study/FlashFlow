@@ -11,6 +11,7 @@ import { getRecentDeckIds } from "@/lib/recentDecks";
 import AssignmentCard from "@/components/AssignmentCard";
 import { isCompleted } from "@/lib/assignments";
 import { useSeo } from "@/lib/useSeo";
+import { useJsonLd } from "@/lib/useJsonLd";
 
 export default function Home() {
   const { user } = useAuth();
@@ -18,6 +19,12 @@ export default function Home() {
     "FlashFlow — Free Flashcard App for Focused Studying",
     "FlashFlow is a free flashcard app for custom flashcard decks, card reviews, and focused study sessions with spaced repetition to help you learn faster."
   );
+  useJsonLd({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "FlashFlow",
+    url: "https://flashflowstudy.com/"
+  });
   const [params, setParams] = useSearchParams();
   const query = params.get("q") || "";
   const [allDecks, setAllDecks] = useState([]);
