@@ -16,6 +16,17 @@ export default async function(req) {
     const deck = await base44.asServiceRole.entities.Deck.get(deck_id).catch(() => null);
     if (!deck) return Response.json({ error: 'Deck not found' }, { status: 404 });
 
+    // Only let the host start a game on a deck they can see — the same visibility
+    // rule as Deck's RLS — otherwise a private deck's card content would leak to
+    // anyone who joins the game.
+    const canAccessDeck =
+      deck.created_by_id === user.id ||
+      deck.is_public === true ||
+      (Array.isArray(deck.classroom_members) && deck.classroom_members.includes(user.id));
+    if (!canAccessDeck) {
+      return Response.json({ error: "You don't have access to this deck" }, { status: 403 });
+    }
+
     let join_code = '';
     for (let i = 0; i < 12; i++) {
       const candidate = genCode(5);

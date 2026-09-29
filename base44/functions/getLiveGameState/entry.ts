@@ -17,6 +17,29 @@ export default async function(req) {
     if (!game) return Response.json({ error: 'Game not found' }, { status: 404 });
 
     const players = await base44.asServiceRole.entities.LivePlayer.filter({ game_id }, 'joined_at', 200);
+
+    // Authorization: a joined player proves identity with the player_token issued
+    // at join time. The authenticated game host may fetch full state without a
+    // token (projector view). Anything else is rejected, so a guessed
+    // game_id/player_id can't read cards or tamper with scores.
+    const player_token = (body?.player_token || '').toString();
+    if (player_id) {
+      const playerRec = players.find(p => p.id === player_id);
+      if (!playerRec || !player_token || player_token !== playerRec.join_token) {
+        let authedUser = null;
+        try { authedUser = await base44.auth.me(); } catch { authedUser = null; }
+        if (!authedUser || authedUser.id !== game.host_user_id) {
+          return Response.json({ error: 'Invalid player token' }, { status: 403 });
+        }
+      }
+    } else {
+      let authedUser = null;
+      try { authedUser = await base44.auth.me(); } catch { authedUser = null; }
+      if (!authedUser || authedUser.id !== game.host_user_id) {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     let cards: any[] = [];
     if (game.card_order.length) {
       const hit = cardCache.get(game.deck_id);

@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 // Requests never overlap, polling pauses while the tab is hidden, and after a
 // failure (e.g. rate limit) it backs off exponentially instead of hammering the
 // API — the last good state stays on screen meanwhile.
-export function useLiveGame(gameId, playerId, intervalMs = 3000) {
+export function useLiveGame(gameId, playerId, playerToken, intervalMs = 3000) {
   const [state, setState] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -36,7 +36,8 @@ export function useLiveGame(gameId, playerId, intervalMs = 3000) {
       try {
         const res = await base44.functions.invoke("getLiveGameState", {
           game_id: gameId,
-          player_id: playerId || ""
+          player_id: playerId || "",
+          player_token: playerToken || ""
         });
         failures = 0;
         if (aliveRef.current) {
@@ -71,7 +72,7 @@ export function useLiveGame(gameId, playerId, intervalMs = 3000) {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [gameId, playerId, intervalMs]);
+  }, [gameId, playerId, playerToken, intervalMs]);
 
   return { state, error, loading, setState };
 }

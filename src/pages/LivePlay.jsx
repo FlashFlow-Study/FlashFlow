@@ -16,7 +16,8 @@ function Center({ children }) {
 
 export default function LivePlay() {
   const { gameId, playerId } = useParams();
-  const { state, loading, error } = useLiveGame(gameId, playerId);
+  const playerToken = sessionStorage.getItem(`live_token_${playerId}`) || "";
+  const { state, loading, error } = useLiveGame(gameId, playerId, playerToken);
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
@@ -48,6 +49,7 @@ export default function LivePlay() {
       const res = await base44.functions.invoke("submitLiveAnswer", {
         game_id: gameId,
         player_id: playerId,
+        player_token: playerToken,
         answer: answer.trim()
       });
       setResult(res.data);

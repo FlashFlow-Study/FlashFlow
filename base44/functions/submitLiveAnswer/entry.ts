@@ -14,8 +14,12 @@ export default async function(req) {
     if (!game) return Response.json({ error: 'Game not found' }, { status: 404 });
     if (game.status !== 'in_progress') return Response.json({ error: 'Game not in progress' }, { status: 400 });
 
+    const player_token = (body?.player_token || '').toString();
     const player = await base44.asServiceRole.entities.LivePlayer.get(player_id).catch(() => null);
     if (!player || player.game_id !== game_id) return Response.json({ error: 'Player not found' }, { status: 404 });
+    if (!player_token || player_token !== player.join_token) {
+      return Response.json({ error: 'Invalid player token' }, { status: 403 });
+    }
     if (!answer) return Response.json({ error: 'Enter an answer' }, { status: 400 });
 
     // Determine the player's current card.

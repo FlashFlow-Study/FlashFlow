@@ -35,8 +35,21 @@ export default async function(req) {
       return Response.json({ error: 'effective_date is required' }, { status: 400 });
     }
 
-    // Build the recipient list. test_to mode: a single address, no auth.
-    // Otherwise the mass-send requires an authenticated admin.
+    // Every call — including test_to — requires an authenticated admin, so the
+    // mass-mail infrastructure can't be aimed at an arbitrary address by a
+    // non-admin. Same admin check the /admin ban page uses.
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      user = null;
+    }
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Build the recipient list. test_to mode: a single address.
+    // Otherwise the mass-send goes to every user.
     let recipients = [];
     if (testTo) {
       if (!EMAIL_RE.test(testTo)) {
@@ -44,16 +57,6 @@ export default async function(req) {
       }
       recipients = [testTo];
     } else {
-      let user = null;
-      try {
-        user = await base44.auth.me();
-      } catch {
-        user = null;
-      }
-      if (!user || user.role !== 'admin') {
-        return Response.json({ error: 'Forbidden' }, { status: 403 });
-      }
-
       // Walk every user via cursor pagination and collect unique emails.
       const seen = new Set();
       const collect = (items) => {

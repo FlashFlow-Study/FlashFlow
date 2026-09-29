@@ -26,6 +26,9 @@ export default function LiveJoin() {
         join_code: code.trim().toUpperCase(),
         display_name: name.trim()
       });
+      if (res.data?.player_token) {
+        sessionStorage.setItem(`live_token_${res.data.player_id}`, res.data.player_token);
+      }
       navigate(`/live/play/${res.data.game_id}/${res.data.player_id}`);
     } catch (err) {
       setError(err?.response?.data?.error || err?.message || "Could not join that game.");

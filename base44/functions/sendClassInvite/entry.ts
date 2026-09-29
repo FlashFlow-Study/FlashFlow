@@ -17,17 +17,28 @@ export default async function(req) {
       return Response.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    const classroomName = (payload?.classroom_name ?? '').toString().trim();
-    const teacherName = (payload?.teacher_name ?? '').toString().trim();
-    const joinCode = (payload?.join_code ?? '').toString().trim().toUpperCase();
+    const classroom_id = (payload?.classroom_id ?? '').toString().trim();
     const emails = Array.isArray(payload?.emails) ? payload.emails : [];
 
-    if (!classroomName || !teacherName) {
-      return Response.json({ error: 'classroom_name and teacher_name are required' }, { status: 400 });
+    if (!classroom_id) {
+      return Response.json({ error: 'classroom_id is required' }, { status: 400 });
     }
     if (emails.length > 100) {
       return Response.json({ error: 'Too many recipients' }, { status: 400 });
     }
+
+    // Look up the classroom server-side; only its owner may send invitations.
+    // The email uses the classroom's real name and join code and the teacher's
+    // authenticated name — nothing client-supplied is trusted for the contents.
+    const classroom = await base44.asServiceRole.entities.Classroom.get(classroom_id).catch(() => null);
+    if (!classroom) return Response.json({ error: 'Classroom not found' }, { status: 404 });
+    if (classroom.created_by_id !== user.id) {
+      return Response.json({ error: 'Only the classroom owner can send invitations' }, { status: 403 });
+    }
+
+    const classroomName = classroom.name || 'your class';
+    const teacherName = user.full_name || user.email || 'Your teacher';
+    const joinCode = (classroom.join_code || '').toUpperCase();
 
     const valid = emails
       .map((e) => (e ?? '').toString().trim().toLowerCase())

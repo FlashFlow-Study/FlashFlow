@@ -40,6 +40,10 @@
     "current_card_started_at": {
       "type": "string",
       "format": "date-time"
+    },
+    "join_token": {
+      "type": "string",
+      "default": ""
     }
   },
   "required": [

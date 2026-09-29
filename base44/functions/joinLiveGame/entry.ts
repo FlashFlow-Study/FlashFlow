@@ -21,6 +21,9 @@ export default async function(req) {
     }
 
     const now = new Date().toISOString();
+    // Per-player secret so a guessed game_id/player_id can't impersonate a
+    // player or tamper with their score. Returned once at join time.
+    const join_token = crypto.randomUUID();
     const player = await base44.asServiceRole.entities.LivePlayer.create({
       game_id: game.id,
       display_name,
@@ -31,10 +34,11 @@ export default async function(req) {
       joined_at: now,
       last_seen: now,
       current_index: 0,
-      current_card_started_at: ''
+      current_card_started_at: '',
+      join_token
     });
 
-    return Response.json({ game_id: game.id, player_id: player.id, join_code, mode: game.mode });
+    return Response.json({ game_id: game.id, player_id: player.id, player_token: join_token, join_code, mode: game.mode });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
