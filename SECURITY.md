@@ -14,4 +14,4 @@ currently being supported with security updates.
 
 ## Reporting a Vulnerability
 
-If there is a vulderability within the software that affects the data rights of a person/peoples, please email <a href="mailto:support@flashflowstudy.com">our support email</a> right away.
+If there is a vulnerability within the software that affects the data rights of a person/peoples, please email <a href="mailto:support@flashflowstudy.com">our support email</a> right away.
