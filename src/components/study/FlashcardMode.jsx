@@ -5,6 +5,7 @@ import ProgressGauge from "./ProgressGauge";
 import SpeakButton from "@/components/SpeakButton";
 import SwapSidesButton from "@/components/SwapSidesButton";
 import { useSpeech } from "@/hooks/useSpeech";
+import { playSound } from "@/lib/sounds";
 
 export default function FlashcardMode({ cards, onExit, onComplete, onSwapCard, isTwoLanguages, sourceLang, targetLang }) {
   const [phase, setPhase] = useState("study"); // "study" | "review" | "done"
@@ -30,6 +31,7 @@ export default function FlashcardMode({ cards, onExit, onComplete, onSwapCard, i
   };
 
   const markAnswer = (correct) => {
+    playSound(correct ? "question-right" : "question-wrong");
     const existing = results[card.id];
     const newResults = {
       ...results,

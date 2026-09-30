@@ -12,6 +12,7 @@ import TypeMode from "@/components/study/TypeMode";
 import TestMode from "@/components/study/TestMode";
 import SpeakingMode from "@/components/study/SpeakingMode";
 import { resolveDeckLanguages } from "@/lib/deckLanguages";
+import { playSound } from "@/lib/sounds";
 
 const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test", speaking: "Speaking" };
 
@@ -39,9 +40,10 @@ export default function Study() {
   const isSpeaking = mode === "speaking";
 
   const handleComplete = async (stats) => {
-    if (!user) return;
     if (recordedRef.current) return;
     recordedRef.current = true;
+    playSound("all-questions-answered");
+    if (!user) return;
     const minutes = startTimeRef.current ? (Date.now() - startTimeRef.current) / 60000 : 0;
     try {
       await base44.entities.StudySession.create({
@@ -129,7 +131,10 @@ export default function Study() {
 
   // Speaking mode has its own controls — skip the setup screen.
   useEffect(() => {
-    if (isSpeaking) setStarted(true);
+    if (isSpeaking) {
+      setStarted(true);
+      playSound("start-practice");
+    }
   }, [isSpeaking]);
 
   if (loading)
@@ -192,6 +197,7 @@ export default function Study() {
     const final = mode === "test" ? qs.slice(0, Math.min(questionCount, qs.length)) : qs;
     setQuestions(final);
     setStarted(true);
+    playSound("start-practice");
   };
 
   const exitTarget = assignment ? `/classroom/${assignment.classroom_id}` : `/deck/${id}`;

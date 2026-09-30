@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Check, X, Minus, ArrowRight } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
+import { playSound } from "@/lib/sounds";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -29,6 +30,9 @@ export default function TestMode({ cards, onExit, onComplete }) {
       );
       onComplete?.({ cards_studied: cards.length, score });
       setSubmitted(true);
+      // Test answers are judged in a single batch at the end, so play one
+      // outcome sound reflecting the overall result (majority correct = pass).
+      playSound(score >= Math.ceil(cards.length / 2) ? "question-right" : "question-wrong");
     }
   };
 

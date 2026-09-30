@@ -5,6 +5,7 @@ import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import { shuffle } from "@/lib/studyCards";
 import SpeakButton from "@/components/SpeakButton";
+import { playSound } from "@/lib/sounds";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -77,6 +78,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
   const submitChoice = () => {
     if (selected == null) return;
     setMcChecked(true);
+    playSound(selected === card.answer ? "question-right" : "question-wrong");
   };
 
   const goType = () => {
@@ -89,6 +91,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
   const checkType = () => {
     setTypeChecked(true);
     if (typeCorrect) setScore((s) => s + 1);
+    playSound(typeCorrect ? "question-right" : "question-wrong");
   };
 
   const next = () => {

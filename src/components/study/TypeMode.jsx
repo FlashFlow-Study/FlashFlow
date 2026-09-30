@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
+import { playSound } from "@/lib/sounds";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -47,7 +48,9 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
 
   const check = () => {
     setChecked(true);
-    if (isAnswerCorrect(value, card.answer, isTwoLanguages)) setScore((s) => s + 1);
+    const ok = isAnswerCorrect(value, card.answer, isTwoLanguages);
+    if (ok) setScore((s) => s + 1);
+    playSound(ok ? "question-right" : "question-wrong");
   };
 
   const next = () => {
