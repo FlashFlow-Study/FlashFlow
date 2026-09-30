@@ -33,6 +33,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Admin from './pages/Admin';
+import AdminBanland from './pages/AdminBanland';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -97,6 +98,7 @@ const AuthenticatedApp = () => {
           <Route path="/account" element={<Account />} />
           <Route path="/admin/data-privacy" element={<AdminDataPrivacy />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/banland" element={<AdminBanland />} />
           <Route path="/admin/verify" element={<AdminVerify />} />
           <Route path="/teacher" element={<TeacherDashboard />} />
           </Route>
