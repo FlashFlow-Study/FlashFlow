@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import AssignmentCard from "@/components/AssignmentCard";
 import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
+import { deckVisibility } from "@/lib/deckVisibility";
 
 export default function ClassroomDetail() {
   const { id } = useParams();
@@ -66,7 +67,7 @@ export default function ClassroomDetail() {
             // Keep each deck's cards' denormalized classroom members in sync.
             updates.forEach((u) => {
               const dd = d.find((x) => x.id === u.id);
-              syncDeckCardsVisibility(u.id, dd?.is_public, joinedIds).catch(() => {});
+              syncDeckCardsVisibility(u.id, deckVisibility(dd), joinedIds).catch(() => {});
             });
           }
         }
@@ -173,7 +174,7 @@ export default function ClassroomDetail() {
           // Keep cards' denormalized classroom members in sync after removal.
           updatedDecks.forEach((u) => {
             const dd = decks.find((x) => x.id === u.id);
-            syncDeckCardsVisibility(u.id, dd?.is_public, u.classroom_members).catch(() => {});
+            syncDeckCardsVisibility(u.id, deckVisibility(dd), u.classroom_members).catch(() => {});
           });
         }
         // Remove the user from assignments' denormalized classroom_members too.

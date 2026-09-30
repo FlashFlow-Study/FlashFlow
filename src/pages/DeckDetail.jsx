@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Layers, Globe, Lock, Trash2, Play, Pencil, User, Star, School } from "lucide-react";
+import { Layers, Globe, Lock, Trash2, Play, Pencil, User, Star, School, Link2, Share2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ExportMenu from "@/components/ExportMenu";
 import StarToggle from "@/components/StarToggle";
@@ -12,6 +12,8 @@ import SpeakButton from "@/components/SpeakButton";
 import { resolveDeckLanguages } from "@/lib/deckLanguages";
 import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 import { toast } from "@/components/ui/use-toast";
+import { deckVisibility } from "@/lib/deckVisibility";
+import VisibilityPicker from "@/components/VisibilityPicker";
 
 export default function DeckDetail() {
   const { id } = useParams();
@@ -58,17 +60,26 @@ export default function DeckDetail() {
     })();
   }, [id]);
 
-  const togglePublic = async () => {
-    if (!deck.is_public) {
+  const setVisibility = async (next) => {
+    if (next === "public") {
       const assignments = await base44.entities.Assignment.filter({ deck_id: id }).catch(() => []);
       if (assignments.length) {
         toast({ description: "You can't make a classroom set public. To make a set public, unassign it from a class first.", variant: "destructive" });
         return;
       }
     }
-    const updated = await base44.entities.Deck.update(id, { is_public: !deck.is_public });
+    const updated = await base44.entities.Deck.update(id, { visibility: next, is_public: next === "public" });
     setDeck(updated);
-    syncDeckCardsVisibility(id, updated.is_public, deck.classroom_members).catch(() => {});
+    syncDeckCardsVisibility(id, updated.visibility, updated.classroom_members).catch(() => {});
+  };
+
+  const shareDeck = async () => {
+    const url = `${window.location.origin}/deck/${deck.id}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: deck.title, url }); } catch { /* user cancelled */ }
+    } else {
+      try { await navigator.clipboard.writeText(url); toast({ description: "Link copied" }); } catch { /* ignore */ }
+    }
   };
 
   const remove = async () => {
@@ -110,6 +121,7 @@ export default function DeckDetail() {
     );
 
   const { targetLang: resolvedTarget } = resolveDeckLanguages(deck, cards);
+  const vis = deckVisibility(deck);
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,18 +134,31 @@ export default function DeckDetail() {
           <div>
             <span
               className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-1 border rounded-md ${
-                deck.is_public ? "border-blue-200 dark:border-blue-800 text-primary bg-blue-50 dark:bg-blue-950/30" : "border-border text-muted-foreground"
+                vis === "public"
+                  ? "border-blue-200 dark:border-blue-800 text-primary bg-blue-50 dark:bg-blue-950/30"
+                  : vis === "unlisted"
+                  ? "border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30"
+                  : "border-border text-muted-foreground"
               }`}
             >
-              {deck.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-              {deck.is_public ? "Public" : "Private"}
+              {vis === "public" ? <Globe className="w-3 h-3" /> : vis === "unlisted" ? <Link2 className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+              {vis === "public" ? "Public" : vis === "unlisted" ? "Unlisted" : "Private"}
             </span>
             {deck.classroom_id && (
               <span className="ml-2 inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest px-2 py-1 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 rounded-md">
                 <School className="w-3 h-3" /> Class
               </span>
             )}
-            <h1 className="font-display text-5xl text-foreground mt-3 tracking-tight">{deck.title}</h1>
+            <div className="mt-3 flex items-center gap-3">
+              <h1 className="font-display text-5xl text-foreground tracking-tight">{deck.title}</h1>
+              <button
+                onClick={shareDeck}
+                title="Share"
+                className="p-2 border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors rounded-md shrink-0"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+            </div>
             {creatorName(deck) && (
               <Link
                 to={`/profile/${deck.created_by_id}`}
@@ -209,12 +234,7 @@ export default function DeckDetail() {
               >
                 <Pencil className="w-3.5 h-3.5 inline mr-1.5" /> Edit
               </Link>
-              <button
-                onClick={togglePublic}
-                className="px-4 py-2.5 border border-blue-200 dark:border-blue-800 font-mono text-xs uppercase tracking-widest hover:border-primary transition-colors rounded-md"
-              >
-                Make {deck.is_public ? "private" : "public"}
-              </button>
+              <VisibilityPicker value={vis} onChange={setVisibility} />
               <button
                 onClick={remove}
                 className="px-4 py-2.5 border border-slate-200 font-mono text-xs uppercase tracking-widest text-destructive hover:border-destructive transition-colors rounded-md"

@@ -141,6 +141,7 @@ export default function CreateDeck() {
         title: title.trim(),
         description: description.trim(),
         is_public: selectedClassroom ? false : isPublic,
+        visibility: selectedClassroom ? "private" : isPublic ? "public" : "private",
         tags: tags
           .split(",")
           .map((t) => t.trim().toLowerCase())

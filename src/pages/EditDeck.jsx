@@ -11,13 +11,15 @@ import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG, resolveDeckLanguages } from "
 import SwapSidesButton from "@/components/SwapSidesButton";
 import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 import { toast } from "@/components/ui/use-toast";
+import { deckVisibility } from "@/lib/deckVisibility";
+import VisibilityPicker from "@/components/VisibilityPicker";
 
 export default function EditDeck() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
+  const [visibility, setVisibility] = useState("private");
   const [tags, setTags] = useState("");
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +50,7 @@ export default function EditDeck() {
         const d = await base44.entities.Deck.get(id);
         setTitle(d.title || "");
         setDescription(d.description || "");
-        setIsPublic(!!d.is_public);
+        setVisibility(deckVisibility(d));
         setTags((d.tags || []).join(", "));
         setIsTwoLanguages(!!d.is_two_languages);
         setSourceLang(d.source_lang || "");
@@ -108,7 +110,7 @@ export default function EditDeck() {
       setError("Add at least one card with both a front and a back.");
       return;
     }
-    if (isPublic) {
+    if (visibility === "public") {
       const assignments = await base44.entities.Assignment.filter({ deck_id: id }).catch(() => []);
       if (assignments.length) {
         setError("You can't make a classroom set public. To make a set public, unassign it from a class first.");
@@ -120,7 +122,8 @@ export default function EditDeck() {
       await base44.entities.Deck.update(id, {
         title: title.trim(),
         description: description.trim(),
-        is_public: isPublic,
+        is_public: visibility === "public",
+        visibility,
         tags: tags.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean),
         is_two_languages: isTwoLanguages,
         source_lang: sourceLang || undefined,
@@ -135,7 +138,7 @@ export default function EditDeck() {
       if (removedIds.length) await base44.entities.Card.deleteMany({ id: { $in: removedIds } });
       if (toUpdate.length) await base44.entities.Card.bulkUpdate(toUpdate);
       if (toCreate.length) await base44.entities.Card.bulkCreate(toCreate);
-      await syncDeckCardsVisibility(id, isPublic, deckClassroomMembers);
+      await syncDeckCardsVisibility(id, visibility, deckClassroomMembers);
       navigate(`/deck/${id}`);
     } catch (e) {
       setError(e.response?.data?.error || "Couldn't save your changes.");
@@ -189,17 +192,9 @@ export default function EditDeck() {
           </div>
           <div>
             <label className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Privacy</label>
-            <button
-              onClick={() => setIsPublic((p) => !p)}
-              className="w-full mt-1 px-4 py-3 bg-card border border-border font-mono text-xs uppercase tracking-widest flex items-center justify-between hover:border-primary transition-colors rounded-md shadow-sm"
-            >
-              <span className={isPublic ? "text-primary" : "text-muted-foreground"}>
-                {isPublic ? "Public" : "Private"}
-              </span>
-              <span className={`w-10 h-5 rounded-full relative transition-colors ${isPublic ? "bg-primary" : "bg-border"}`}>
-                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${isPublic ? "left-5" : "left-0.5"}`} />
-              </span>
-            </button>
+            <div className="mt-1">
+              <VisibilityPicker block value={visibility} onChange={setVisibility} />
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

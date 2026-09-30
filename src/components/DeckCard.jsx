@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Globe, Lock, Layers, User, School } from "lucide-react";
+import { Globe, Lock, Layers, User, School, Link2 } from "lucide-react";
 import UserBadges from "@/components/UserBadges";
+import { deckVisibility } from "@/lib/deckVisibility";
 
 function relativeDate(iso) {
   if (!iso) return null;
@@ -18,6 +19,7 @@ function relativeDate(iso) {
 
 export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact, creatorName, badges }) {
   const navigate = useNavigate();
+  const vis = deckVisibility(deck);
   const studied = relativeDate(lastStudied);
   return (
     <motion.div
@@ -40,13 +42,15 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
             className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest px-2 py-1 border ${
               deck.classroom_id
                 ? "border-indigo-300 text-indigo-600 dark:border-indigo-700 dark:text-indigo-400"
-                : deck.is_public
+                : vis === "public"
                 ? "border-primary/30 text-primary"
+                : vis === "unlisted"
+                ? "border-amber-300 text-amber-600 dark:border-amber-700 dark:text-amber-400"
                 : "border-border text-muted-foreground"
             }`}
           >
-            {deck.classroom_id ? <School className="w-3 h-3" /> : deck.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-            {deck.classroom_id ? "Class" : deck.is_public ? "Public" : "Private"}
+            {deck.classroom_id ? <School className="w-3 h-3" /> : vis === "public" ? <Globe className="w-3 h-3" /> : vis === "unlisted" ? <Link2 className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+            {deck.classroom_id ? "Class" : vis === "public" ? "Public" : vis === "unlisted" ? "Unlisted" : "Private"}
           </span>
         </div>
         {deck.description ? (

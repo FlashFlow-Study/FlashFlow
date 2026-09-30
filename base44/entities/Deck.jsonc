@@ -14,6 +14,15 @@
       "type": "boolean",
       "default": false
     },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "unlisted",
+        "public"
+      ],
+      "default": "private"
+    },
     "tags": {
       "type": "array",
       "items": {
@@ -62,6 +71,9 @@
         },
         {
           "data.is_public": true
+        },
+        {
+          "data.visibility": "unlisted"
         },
         {
           "data.classroom_members": "{{user.id}}"
