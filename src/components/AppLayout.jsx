@@ -168,16 +168,16 @@ export default function AppLayout() {
             <Link to="/terms" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
               Terms
             </Link>
-            {isAdmin &&
-            <Link to="/admin/data-privacy" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline hidden">
-                Data Privacy
-              </Link>
-            }
-            {isAdmin &&
-            <Link to="/admin/verify" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline hidden">
-                Verify users
-              </Link>
-            }
+            
+
+
+
+            
+            
+
+
+
+            
             {isAdmin &&
             <Link to="/admin" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline">
                 Admin
