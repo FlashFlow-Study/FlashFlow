@@ -1,0 +1,4 @@
+{
+  "name": "getLiveGameState",
+  "entry": "entry.ts"
+}
