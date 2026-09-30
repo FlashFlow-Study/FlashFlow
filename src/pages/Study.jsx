@@ -12,7 +12,7 @@ import TypeMode from "@/components/study/TypeMode";
 import TestMode from "@/components/study/TestMode";
 import SpeakingMode from "@/components/study/SpeakingMode";
 import { resolveDeckLanguages } from "@/lib/deckLanguages";
-import { playSound } from "@/lib/sounds";
+import { playSound, warmupSounds } from "@/lib/sounds";
 
 const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test", speaking: "Speaking" };
 
@@ -134,6 +134,7 @@ export default function Study() {
     if (isSpeaking) {
       setStarted(true);
       playSound("start-practice");
+      warmupSounds();
     }
   }, [isSpeaking]);
 
@@ -198,6 +199,7 @@ export default function Study() {
     setQuestions(final);
     setStarted(true);
     playSound("start-practice");
+    warmupSounds();
   };
 
   const exitTarget = assignment ? `/classroom/${assignment.classroom_id}` : `/deck/${id}`;
