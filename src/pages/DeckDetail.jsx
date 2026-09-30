@@ -11,6 +11,7 @@ import { addRecentDeck } from "@/lib/recentDecks";
 import SpeakButton from "@/components/SpeakButton";
 import { resolveDeckLanguages } from "@/lib/deckLanguages";
 import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
+import { toast } from "@/components/ui/use-toast";
 
 export default function DeckDetail() {
   const { id } = useParams();
@@ -58,6 +59,13 @@ export default function DeckDetail() {
   }, [id]);
 
   const togglePublic = async () => {
+    if (!deck.is_public) {
+      const assignments = await base44.entities.Assignment.filter({ deck_id: id }).catch(() => []);
+      if (assignments.length) {
+        toast({ description: "You can't make a classroom set public. To make a set public, unassign it from a class first.", variant: "destructive" });
+        return;
+      }
+    }
     const updated = await base44.entities.Deck.update(id, { is_public: !deck.is_public });
     setDeck(updated);
     syncDeckCardsVisibility(id, updated.is_public, deck.classroom_members).catch(() => {});

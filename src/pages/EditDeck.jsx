@@ -108,6 +108,13 @@ export default function EditDeck() {
       setError("Add at least one card with both a front and a back.");
       return;
     }
+    if (isPublic) {
+      const assignments = await base44.entities.Assignment.filter({ deck_id: id }).catch(() => []);
+      if (assignments.length) {
+        setError("You can't make a classroom set public. To make a set public, unassign it from a class first.");
+        return;
+      }
+    }
     setSaving(true);
     try {
       await base44.entities.Deck.update(id, {

@@ -80,9 +80,13 @@ export default function AssignmentFormDialog({ open, onClose, onSaved, classroom
     if (!deckId) return setError("Pick a deck for this assignment.");
     if (!goalValue || goalValue <= 0) return setError("Set a goal value greater than zero.");
     if (mode === "test" && (!testLength || testLength <= 0)) return setError("Set the test length.");
+    const deck = decks.find((d) => d.id === deckId);
+    if (deck?.is_public) {
+      setError("You can't assign a public set to a classroom. To assign it, make it private first.");
+      return;
+    }
     setSaving(true);
     try {
-      const deck = decks.find((d) => d.id === deckId);
       const payload = {
         classroom_id: classroom.id,
         classroom_name: classroom?.name || "",
