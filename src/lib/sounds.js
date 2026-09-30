@@ -5,13 +5,15 @@
 // Playback is non-essential feedback, so autoplay restrictions / missing
 // files are silently swallowed.
 const VOLUME = 0.3;
+const QUESTION_RIGHT_URL =
+  "https://base44.app/api/apps/6ab03f1c0caee07cda7b24b0/files/mp/public/6ab03f1c0caee07cda7b24b0/27643901e_ccf3a6d8e_UI_sting_in_B_flat_4-1790801745630.mp3";
 const cache = new Map();
 
 function getAudio(name) {
   let audio = cache.get(name);
   if (!audio) {
-    const file = name === "question-right" ? "question-right-new" : name;
-    audio = new Audio(`/sounds/${file}.mp3`);
+    const src = name === "question-right" ? QUESTION_RIGHT_URL : `/sounds/${name}.mp3`;
+    audio = new Audio(src);
     audio.volume = VOLUME;
     cache.set(name, audio);
   }
