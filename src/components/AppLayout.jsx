@@ -169,12 +169,12 @@ export default function AppLayout() {
               Terms
             </Link>
             {isAdmin &&
-            <Link to="/admin/data-privacy" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline">
+            <Link to="/admin/data-privacy" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline hidden">
                 Data Privacy
               </Link>
             }
             {isAdmin &&
-            <Link to="/admin/verify" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline">
+            <Link to="/admin/verify" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline hidden">
                 Verify users
               </Link>
             }
