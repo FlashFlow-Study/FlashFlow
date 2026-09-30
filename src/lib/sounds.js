@@ -10,7 +10,8 @@ const cache = new Map();
 function getAudio(name) {
   let audio = cache.get(name);
   if (!audio) {
-    audio = new Audio(`/sounds/${name}.mp3`);
+    const file = name === "question-right" ? "question-right-new" : name;
+    audio = new Audio(`/sounds/${file}.mp3`);
     audio.volume = VOLUME;
     cache.set(name, audio);
   }
