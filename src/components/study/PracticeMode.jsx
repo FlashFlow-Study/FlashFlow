@@ -141,6 +141,8 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
                   if (isAnswer) cls = "border-primary bg-primary/5";
                   else if (isPicked) cls = "border-destructive bg-destructive/5";
                   else cls = "border-border opacity-50";
+                } else if (isPicked) {
+                  cls = "border-primary bg-primary/5";
                 }
                 return (
                   <div key={opt} className="flex items-center gap-2">

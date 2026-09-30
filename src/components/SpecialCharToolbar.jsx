@@ -20,11 +20,15 @@ export default function SpecialCharToolbar({ activeInputRef }) {
     const start = el.selectionStart ?? el.value.length;
     const end = el.selectionEnd ?? el.value.length;
     const newValue = el.value.slice(0, start) + char + el.value.slice(end);
+    const newPos = start + char.length;
     active.onChange(newValue);
+    // Update the DOM node's value/cursor synchronously so a rapid next click
+    // reads the correct position instead of a stale one.
+    el.value = newValue;
+    el.setSelectionRange(newPos, newPos);
     requestAnimationFrame(() => {
       el.focus();
-      const pos = start + char.length;
-      el.setSelectionRange(pos, pos);
+      el.setSelectionRange(newPos, newPos);
     });
   };
 
