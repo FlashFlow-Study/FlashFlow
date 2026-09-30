@@ -8,7 +8,11 @@ export const MAIN_DOMAIN = "flashflowstudy.com";
 
 export function isBlogHost() {
   if (typeof window === "undefined") return false;
-  return window.location.hostname.replace(/:\d+$/, "").toLowerCase() === BLOG_HOST;
+  // Strip a leading "www." and an optional port, compare case-insensitively.
+  return (
+    window.location.hostname.replace(/^www\./, "").replace(/:\d+$/, "").toLowerCase() ===
+    BLOG_HOST
+  );
 }
 
 export function mainUrl(path = "") {

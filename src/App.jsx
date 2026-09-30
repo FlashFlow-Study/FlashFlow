@@ -125,13 +125,21 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  // Host-based routing: the blog subdomain serves the blog (BlogSite), the
+  // main domain serves the full app (AuthenticatedApp). Logged once so the
+  // branch can be verified in the browser console on the live subdomain.
+  const blogHost = isBlogHost();
+  if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.info("[FlashFlow routing]", window.location.hostname, "→", blogHost ? "BlogSite" : "AuthenticatedApp");
+  }
 
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
-          {isBlogHost() ? <BlogSite /> : <AuthenticatedApp />}
+          {blogHost ? <BlogSite /> : <AuthenticatedApp />}
         </Router>
         <Toaster />
       </QueryClientProvider>
