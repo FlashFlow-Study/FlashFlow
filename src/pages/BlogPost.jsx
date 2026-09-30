@@ -7,6 +7,8 @@ import { useSeo } from "@/lib/useSeo";
 import { excerpt } from "@/lib/markdown";
 import Markdown from "@/components/Markdown";
 import { Image } from "@/components/ui/image";
+import { isBlogHost, blogListPath } from "@/lib/blogHost";
+import RedirectToMainDomain from "@/components/RedirectToMainDomain";
 
 export default function BlogPost() {
   const { id } = useParams();
@@ -38,20 +40,22 @@ export default function BlogPost() {
       </div>
     );
 
-  if (post === false)
+  if (post === false) {
+    if (isBlogHost()) return <RedirectToMainDomain />;
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center">
         <p className="font-display text-2xl text-foreground">Post not found</p>
-        <Link to="/blog" className="mt-6 inline-block font-mono text-xs uppercase tracking-widest text-primary">
+        <Link to={blogListPath()} className="mt-6 inline-block font-mono text-xs uppercase tracking-widest text-primary">
           ← Back to blog
         </Link>
       </div>
     );
+  }
 
   return (
     <article className="max-w-3xl mx-auto px-4 md:px-8 py-8 md:py-12">
       <Link
-        to="/blog"
+        to={blogListPath()}
         className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Back to blog

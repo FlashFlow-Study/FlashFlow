@@ -45,6 +45,8 @@ import OAuthConsent from './pages/OAuthConsent';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppLayout from '@/components/AppLayout';
 import BannedScreen from '@/components/BannedScreen';
+import BlogSite from '@/components/BlogSite';
+import { isBlogHost } from '@/lib/blogHost';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, ban } = useAuth();
@@ -129,7 +131,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
-          <AuthenticatedApp />
+          {isBlogHost() ? <BlogSite /> : <AuthenticatedApp />}
         </Router>
         <Toaster />
       </QueryClientProvider>

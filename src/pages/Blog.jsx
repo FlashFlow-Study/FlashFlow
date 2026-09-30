@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useSeo } from "@/lib/useSeo";
 import { excerpt } from "@/lib/markdown";
+import { blogPostPath } from "@/lib/blogHost";
 import { Image } from "@/components/ui/image";
 
 export default function Blog() {
@@ -59,7 +60,7 @@ export default function Blog() {
               transition={{ duration: 0.3, delay: i * 0.05 }}
             >
               <Link
-                to={`/blog/${p.id}`}
+                to={blogPostPath(p.id)}
                 className="group block h-full bg-card border border-border rounded-xl overflow-hidden hover:border-primary hover:shadow-md transition-all"
               >
                 {p.image_url ? (
