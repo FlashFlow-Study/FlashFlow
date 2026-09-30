@@ -34,6 +34,9 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import Admin from './pages/Admin';
 import AdminBanland from './pages/AdminBanland';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
+import AdminBlog from './pages/AdminBlog';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -87,6 +90,8 @@ const AuthenticatedApp = () => {
         <Route path="/live" element={<LiveJoin />} />
         <Route path="/deck/:id" element={<DeckDetail />} />
         <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:id" element={<BlogPost />} />
         <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
           <Route path="/create" element={<CreateDeck />} />
           <Route path="/edit/:id" element={<EditDeck />} />
@@ -101,6 +106,7 @@ const AuthenticatedApp = () => {
           <Route path="/admin/data-privacy" element={<AdminDataPrivacy />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/banland" element={<AdminBanland />} />
+          <Route path="/admin/blog" element={<AdminBlog />} />
           <Route path="/admin/verify" element={<AdminVerify />} />
           <Route path="/teacher" element={<TeacherDashboard />} />
           </Route>

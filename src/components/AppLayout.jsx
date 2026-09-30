@@ -159,6 +159,9 @@ export default function AppLayout() {
             <Link to="/contact" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
               Contact
             </Link>
+            <Link to="/blog" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+              Blog
+            </Link>
             <Link to="/live" className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
               Live <BetaBadge className="ml-1" />
             </Link>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Ban as BanIcon, ShieldCheck, FileLock, Loader2, Lock } from "lucide-react";
+import { Ban as BanIcon, ShieldCheck, FileLock, Loader2, Lock, Newspaper } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useSeo } from "@/lib/useSeo";
@@ -67,6 +67,12 @@ export default function Admin() {
       icon: FileLock,
       title: "Data privacy",
       desc: "Export or erase user data for GDPR requests.",
+    },
+    {
+      to: "/admin/blog",
+      icon: Newspaper,
+      title: "Blog",
+      desc: "Write and manage blog posts published on the site.",
     },
   ];
 
