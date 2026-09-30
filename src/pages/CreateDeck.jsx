@@ -11,6 +11,7 @@ import { suggestTags } from "@/lib/suggestTags";
 import LanguagePairSelect from "@/components/LanguagePairSelect";
 import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG } from "@/lib/deckLanguages";
 import SwapSidesButton from "@/components/SwapSidesButton";
+import CardImageUpload from "@/components/CardImageUpload";
 import { toast } from "@/components/ui/use-toast";
 
 export default function CreateDeck() {
@@ -24,7 +25,7 @@ export default function CreateDeck() {
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [tags, setTags] = useState("");
-  const [cards, setCards] = useState([{ front: "", back: "", orientation: "normal" }]);
+  const [cards, setCards] = useState([{ front: "", back: "", orientation: "normal", term_image_url: "", definition_image_url: "" }]);
   const [notes, setNotes] = useState("");
   const [mode, setMode] = useState(
     params.get("ai") === "1" ? "ai" : params.get("import") === "1" ? "import" : "manual"
@@ -76,14 +77,14 @@ export default function CreateDeck() {
     if (result.description !== undefined) setDescription(result.description || "");
     if (result.is_public !== undefined) setIsPublic(!!result.is_public);
     if (result.tags) setTags(Array.isArray(result.tags) ? result.tags.join(", ") : "");
-    setCards(result.cards.map((c) => ({ front: c.front, back: c.back })));
+    setCards(result.cards.map((c) => ({ front: c.front, back: c.back, term_image_url: c.term_image_url || "", definition_image_url: c.definition_image_url || "" })));
     setMode("manual");
   };
 
   const updateCard = (i, field, val) => {
     setCards((c) => c.map((card, idx) => (idx === i ? { ...card, [field]: val } : card)));
   };
-  const addCard = () => setCards((c) => [...c, { front: "", back: "", orientation: "normal" }]);
+  const addCard = () => setCards((c) => [...c, { front: "", back: "", orientation: "normal", term_image_url: "", definition_image_url: "" }]);
   const removeCard = (i) => setCards((c) => c.filter((_, idx) => idx !== i));
   const swapCardSide = (i) => {
     setCards((c) => c.map((card, idx) => (idx === i ? { ...card, orientation: card.orientation === "swapped" ? "normal" : "swapped" } : card)));
@@ -161,6 +162,8 @@ export default function CreateDeck() {
           back: c.back.trim(),
           order: i,
           orientation: c.orientation || "normal",
+          term_image_url: c.term_image_url || undefined,
+          definition_image_url: c.definition_image_url || undefined,
           deck_is_public: selectedClassroom ? false : isPublic,
           deck_classroom_members: classroomMembers,
         }))
@@ -394,20 +397,36 @@ export default function CreateDeck() {
                 <div className="flex items-start gap-3">
                   <span className="font-mono text-xs text-muted-foreground pt-2">{i + 1}</span>
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input
-                      value={card.front}
-                      onChange={(e) => updateCard(i, "front", e.target.value)}
-                      onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "front", v) }; }}
-                      placeholder="Front (term)"
-                      className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary"
-                    />
-                    <input
-                      value={card.back}
-                      onChange={(e) => updateCard(i, "back", e.target.value)}
-                      onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "back", v) }; }}
-                      placeholder="Back (definition)"
-                      className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary"
-                    />
+                    <div className="space-y-1.5">
+                      <input
+                        value={card.front}
+                        onChange={(e) => updateCard(i, "front", e.target.value)}
+                        onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "front", v) }; }}
+                        placeholder="Front (term)"
+                        className="w-full px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary"
+                      />
+                      <CardImageUpload
+                        value={card.term_image_url}
+                        onChange={(url) => updateCard(i, "term_image_url", url)}
+                        onRemove={() => updateCard(i, "term_image_url", "")}
+                        label="term photo"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <input
+                        value={card.back}
+                        onChange={(e) => updateCard(i, "back", e.target.value)}
+                        onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "back", v) }; }}
+                        placeholder="Back (definition)"
+                        className="w-full px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary"
+                      />
+                      <CardImageUpload
+                        value={card.definition_image_url}
+                        onChange={(url) => updateCard(i, "definition_image_url", url)}
+                        onRemove={() => updateCard(i, "definition_image_url", "")}
+                        label="definition photo"
+                      />
+                    </div>
                   </div>
                   <SwapSidesButton
                     onClick={() => swapCardSide(i)}

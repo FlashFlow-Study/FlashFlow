@@ -13,6 +13,7 @@ import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 import { toast } from "@/components/ui/use-toast";
 import { deckVisibility } from "@/lib/deckVisibility";
 import VisibilityPicker from "@/components/VisibilityPicker";
+import CardImageUpload from "@/components/CardImageUpload";
 
 export default function EditDeck() {
   const { id } = useParams();
@@ -61,7 +62,7 @@ export default function EditDeck() {
           base44.entities.Card.filter({ deck_id: id }, "order", 200),
           base44.entities.Folder.list("-created_date", 100).catch(() => []),
         ]);
-        setCards(c.map((card) => ({ id: card.id, front: card.front, back: card.back, order: card.order, orientation: card.orientation || "normal" })));
+        setCards(c.map((card) => ({ id: card.id, front: card.front, back: card.back, order: card.order, orientation: card.orientation || "normal", term_image_url: card.term_image_url || "", definition_image_url: card.definition_image_url || "" })));
         setOriginalIds(c.map((card) => card.id));
         setFolders(folderList);
         // Backfill language defaults for existing two-language decks that have
@@ -131,8 +132,8 @@ export default function EditDeck() {
         folder_id: selectedFolder || undefined,
       });
       const indexed = valid.map((c, i) => ({ ...c, front: c.front.trim(), back: c.back.trim(), order: i }));
-      const toUpdate = indexed.filter((c) => c.id).map((c) => ({ id: c.id, front: c.front, back: c.back, order: c.order, orientation: c.orientation || "normal" }));
-      const toCreate = indexed.filter((c) => !c.id).map((c) => ({ deck_id: id, front: c.front, back: c.back, order: c.order, orientation: c.orientation || "normal" }));
+      const toUpdate = indexed.filter((c) => c.id).map((c) => ({ id: c.id, front: c.front, back: c.back, order: c.order, orientation: c.orientation || "normal", term_image_url: c.term_image_url || undefined, definition_image_url: c.definition_image_url || undefined }));
+      const toCreate = indexed.filter((c) => !c.id).map((c) => ({ deck_id: id, front: c.front, back: c.back, order: c.order, orientation: c.orientation || "normal", term_image_url: c.term_image_url || undefined, definition_image_url: c.definition_image_url || undefined }));
       const keptIds = new Set(toUpdate.map((c) => c.id));
       const removedIds = originalIds.filter((oid) => !keptIds.has(oid));
       if (removedIds.length) await base44.entities.Card.deleteMany({ id: { $in: removedIds } });
@@ -262,20 +263,36 @@ export default function EditDeck() {
             <div className="flex items-start gap-3">
               <span className="font-mono text-xs text-muted-foreground pt-2">{i + 1}</span>
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  value={card.front}
-                  onChange={(e) => updateCard(i, "front", e.target.value)}
-                  onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "front", v) }; }}
-                  placeholder="Front (term)"
-                  className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
-                />
-                <input
-                  value={card.back}
-                  onChange={(e) => updateCard(i, "back", e.target.value)}
-                  onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "back", v) }; }}
-                  placeholder="Back (definition)"
-                  className="px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
-                />
+                <div className="space-y-1.5">
+                  <input
+                    value={card.front}
+                    onChange={(e) => updateCard(i, "front", e.target.value)}
+                    onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "front", v) }; }}
+                    placeholder="Front (term)"
+                    className="w-full px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+                  />
+                  <CardImageUpload
+                    value={card.term_image_url}
+                    onChange={(url) => updateCard(i, "term_image_url", url)}
+                    onRemove={() => updateCard(i, "term_image_url", "")}
+                    label="term photo"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <input
+                    value={card.back}
+                    onChange={(e) => updateCard(i, "back", e.target.value)}
+                    onFocus={(e) => { activeInputRef.current = { element: e.target, onChange: (v) => updateCard(i, "back", v) }; }}
+                    placeholder="Back (definition)"
+                    className="w-full px-3 py-2.5 bg-background border border-border font-body text-sm focus:outline-none focus:border-primary rounded-md"
+                  />
+                  <CardImageUpload
+                    value={card.definition_image_url}
+                    onChange={(url) => updateCard(i, "definition_image_url", url)}
+                    onRemove={() => updateCard(i, "definition_image_url", "")}
+                    label="definition photo"
+                  />
+                </div>
               </div>
               <SwapSidesButton
                 onClick={() => swapCardSide(i)}

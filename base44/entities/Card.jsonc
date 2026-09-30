@@ -25,6 +25,12 @@
       ],
       "default": "normal"
     },
+    "term_image_url": {
+      "type": "string"
+    },
+    "definition_image_url": {
+      "type": "string"
+    },
     "deck_is_public": {
       "type": "boolean",
       "default": false

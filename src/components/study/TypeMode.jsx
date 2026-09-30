@@ -4,6 +4,7 @@ import { Check, X } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import { playSound } from "@/lib/sounds";
+import CardImage from "./CardImage";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -44,6 +45,8 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
   const activeInputRef = useRef(null);
 
   const card = cards[index];
+  const promptImage = card?.flipped ? card?.definition_image_url : card?.term_image_url;
+  const answerImage = card?.flipped ? card?.term_image_url : card?.definition_image_url;
   const correct = checked && (isAnswerCorrect(value, card.answer, isTwoLanguages) || markedCorrect);
 
   const check = () => {
@@ -94,6 +97,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
         <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
           {card.promptLabel}
         </span>
+        <CardImage url={promptImage} className="mb-6" />
         <h3 className="font-display text-3xl text-foreground mt-3 mb-6">{card.prompt}</h3>
 
         <input
@@ -145,6 +149,7 @@ export default function TypeMode({ cards, onExit, onComplete, isTwoLanguages }) 
                 {correct ? "Correct" : "Not quite"}
               </span>
             </div>
+            <CardImage url={answerImage} className="mb-2" />
             <p className="font-body text-sm text-foreground">
               <span className="text-muted-foreground">Answer: </span>
               {card.answer}

@@ -11,10 +11,11 @@ import PracticeMode from "@/components/study/PracticeMode";
 import TypeMode from "@/components/study/TypeMode";
 import TestMode from "@/components/study/TestMode";
 import SpeakingMode from "@/components/study/SpeakingMode";
+import GridMode from "@/components/study/GridMode";
 import { resolveDeckLanguages } from "@/lib/deckLanguages";
 import { playSound, warmupSounds } from "@/lib/sounds";
 
-const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test", speaking: "Speaking" };
+const MODE_LABELS = { flashcards: "Flashcards", quiz: "Practice", type: "Type", test: "Test", grid: "Grid", speaking: "Speaking" };
 
 export default function Study() {
   const { id, mode } = useParams();
@@ -205,7 +206,7 @@ export default function Study() {
   const exitTarget = assignment ? `/classroom/${assignment.classroom_id}` : `/deck/${id}`;
   const { sourceLang: resolvedSource, targetLang: resolvedTarget } = resolveDeckLanguages(deck, cards);
 
-  const Mode = isSpeaking ? SpeakingMode : mode === "quiz" ? PracticeMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : FlashcardMode;
+  const Mode = isSpeaking ? SpeakingMode : mode === "quiz" ? PracticeMode : mode === "type" ? TypeMode : mode === "test" ? TestMode : mode === "grid" ? GridMode : FlashcardMode;
   if (started && !startTimeRef.current) startTimeRef.current = Date.now();
 
   return (

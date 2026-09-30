@@ -6,6 +6,7 @@ import SpeakButton from "@/components/SpeakButton";
 import SwapSidesButton from "@/components/SwapSidesButton";
 import { useSpeech } from "@/hooks/useSpeech";
 import { playSound } from "@/lib/sounds";
+import CardImage from "./CardImage";
 
 export default function FlashcardMode({ cards, onExit, onComplete, onSwapCard, isTwoLanguages, sourceLang, targetLang }) {
   const [phase, setPhase] = useState("study"); // "study" | "review" | "done"
@@ -21,6 +22,8 @@ export default function FlashcardMode({ cards, onExit, onComplete, onSwapCard, i
   const card = activeCards[index];
   const promptLang = card?.flipped ? targetLang : sourceLang;
   const answerLang = card?.flipped ? sourceLang : targetLang;
+  const promptImage = card?.flipped ? card?.definition_image_url : card?.term_image_url;
+  const answerImage = card?.flipped ? card?.term_image_url : card?.definition_image_url;
 
   const finish = (finalResults) => {
     setPhase("done");
@@ -181,6 +184,7 @@ export default function FlashcardMode({ cards, onExit, onComplete, onSwapCard, i
                 <SpeakButton text={card.prompt} lang={promptLang} />
               </span>
             )}
+            <CardImage url={promptImage} className="mb-4" />
             <p className="font-display text-4xl leading-snug text-foreground">{card.prompt}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               <RotateCw className="w-3 h-3" /> Click to flip
@@ -198,6 +202,7 @@ export default function FlashcardMode({ cards, onExit, onComplete, onSwapCard, i
                 <SpeakButton text={card.answer} lang={answerLang} />
               </span>
             )}
+            <CardImage url={answerImage} className="mb-4" />
             <p className="font-display text-3xl leading-snug">{card.answer}</p>
             <span className="absolute bottom-4 inline-flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest opacity-70">
               <RotateCw className="w-3 h-3" /> Click to flip back

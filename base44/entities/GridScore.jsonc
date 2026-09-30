@@ -1,0 +1,35 @@
+{
+  "name": "GridScore",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string",
+      "default": ""
+    },
+    "time_ms": {
+      "type": "number"
+    },
+    "deck_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deck_id",
+    "time_ms"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

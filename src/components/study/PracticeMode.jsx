@@ -6,6 +6,7 @@ import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import { shuffle } from "@/lib/studyCards";
 import SpeakButton from "@/components/SpeakButton";
 import { playSound } from "@/lib/sounds";
+import CardImage from "./CardImage";
 
 function normalize(s) {
   return (s || "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -47,6 +48,8 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
   const card = cards[index];
   const promptLang = card?.flipped ? targetLang : sourceLang;
   const answerLang = card?.flipped ? sourceLang : targetLang;
+  const promptImage = card?.flipped ? card?.definition_image_url : card?.term_image_url;
+  const answerImage = card?.flipped ? card?.term_image_url : card?.definition_image_url;
 
   const options = useMemo(() => {
     if (!card) return [];
@@ -124,6 +127,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               {card.promptLabel}
             </span>
+            <CardImage url={promptImage} className="mb-4" />
             <h3 className="font-display text-3xl text-foreground mt-3 mb-6">{card.prompt}</h3>
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
               Pick the correct {card.answerLabel.toLowerCase()}
@@ -168,6 +172,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
               </button>
             ) : (
               <div className="mt-6">
+                <CardImage url={answerImage} className="mb-3" />
                 <div className={`flex items-center gap-2 mb-3 ${mcCorrect ? "text-positive" : "text-destructive"}`}>
                   {mcCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                   <span className="font-mono text-xs uppercase tracking-widest">{mcCorrect ? "Correct" : "Not quite"}</span>
@@ -192,6 +197,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
             <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               {card.promptLabel}
             </span>
+            <CardImage url={promptImage} className="mb-4" />
             <h3 className="font-display text-3xl text-foreground mt-3 mb-6">{card.prompt}</h3>
             <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-3">
               Now type the {card.answerLabel.toLowerCase()}
@@ -237,6 +243,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
                 animate={{ opacity: 1 }}
                 className="mt-4 p-4 border border-border bg-card rounded-md"
               >
+                <CardImage url={answerImage} className="mb-2" />
                 <div className={`flex items-center gap-2 mb-2 ${effectiveCorrect ? "text-positive" : "text-destructive"}`}>
                   {effectiveCorrect ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                   <span className="font-mono text-xs uppercase tracking-widest">{effectiveCorrect ? "Correct" : "Not quite"}</span>
