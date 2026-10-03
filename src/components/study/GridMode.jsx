@@ -110,14 +110,29 @@ export default function GridMode({ cards, onExit, onComplete, deck }) {
     setPhase("done");
     onComplete?.({ cards_studied: pairCount, score: finalMs });
     (async () => {
-      const name = user?.full_name || user?.email || "Anonymous";
+      const name = user?.display_name || user?.full_name || user?.email || "Anonymous";
       try {
-        await base44.entities.GridScore.create({
+        // Only persist a new best: find this user's existing entries for the
+        // deck and update the fastest one if the new time beats it. If none
+        // exist yet, create the first entry. A non-PB run leaves the
+        // leaderboard unchanged.
+        const mine = await base44.entities.GridScore.filter({
           deck_id: deck?.id,
-          time_ms: finalMs,
-          display_name: name,
           user_id: user?.id,
-        });
+        }, "time_ms", 1);
+        if (mine.length === 0) {
+          await base44.entities.GridScore.create({
+            deck_id: deck?.id,
+            time_ms: finalMs,
+            display_name: name,
+            user_id: user?.id,
+          });
+        } else if (finalMs < mine[0].time_ms) {
+          await base44.entities.GridScore.update(mine[0].id, {
+            time_ms: finalMs,
+            display_name: name,
+          });
+        }
       } catch {
         /* ignore */
       }
