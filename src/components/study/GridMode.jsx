@@ -42,6 +42,7 @@ export default function GridMode({ cards, onExit, onComplete, deck }) {
   const [matchedCount, setMatchedCount] = useState(0);
   const [scores, setScores] = useState([]);
   const [savedTimeMs, setSavedTimeMs] = useState(0);
+  const [isPB, setIsPB] = useState(false);
   const lockRef = useRef(false);
   const startTimeRef = useRef(null);
 
@@ -62,6 +63,7 @@ export default function GridMode({ cards, onExit, onComplete, deck }) {
     setMatchedCount(0);
     setScores([]);
     setSavedTimeMs(0);
+    setIsPB(false);
     lockRef.current = false;
   };
 
@@ -127,11 +129,13 @@ export default function GridMode({ cards, onExit, onComplete, deck }) {
             display_name: name,
             user_id: user?.id,
           });
+          setIsPB(true);
         } else if (finalMs < mine[0].time_ms) {
           await base44.entities.GridScore.update(mine[0].id, {
             time_ms: finalMs,
             display_name: name,
           });
+          setIsPB(true);
         }
       } catch {
         /* ignore */
@@ -200,8 +204,13 @@ export default function GridMode({ cards, onExit, onComplete, deck }) {
     return (
       <div className="max-w-md mx-auto text-center">
         <h2 className="font-display text-4xl text-foreground mb-2">Grid complete!</h2>
-        <p className="font-mono text-sm text-muted-foreground mb-6">
+        <p className="font-mono text-sm text-muted-foreground mb-2 flex items-center justify-center gap-2">
           Your time: <span className="text-foreground font-medium">{fmt(savedTimeMs / 100)}</span>
+          {isPB && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-positive/10 border border-positive/40 text-positive font-mono text-[10px] uppercase tracking-widest">
+              New PB!
+            </span>
+          )}
         </p>
         <div className="mt-6 text-left">
           <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mb-2">
