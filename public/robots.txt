@@ -5,4 +5,4 @@ Allow: /
 # Public deck pages and the blog are crawlable; study sessions and
 # account screens are behind auth and not indexed.
 
-Sitemap: https://flashflowstudy.base44.app/sitemap.xml
+Sitemap: https://flashflowstudy.com/sitemap.xml
