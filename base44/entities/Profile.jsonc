@@ -18,7 +18,16 @@
     "user_id"
   ],
   "rls": {
-    "read": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.user_id": "{{user.id}}"
+        }
+      ]
+    },
     "create": {
       "created_by_id": "{{user.id}}"
     },

@@ -13,5 +13,10 @@
     "role"
   ],
   "name": "User",
-  "type": "object"
+  "type": "object",
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
 }
