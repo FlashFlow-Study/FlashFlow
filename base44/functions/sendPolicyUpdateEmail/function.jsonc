@@ -1,0 +1,4 @@
+{
+  "name": "sendPolicyUpdateEmail",
+  "entry": "entry.ts"
+}
