@@ -103,10 +103,22 @@ export default function DeckDetail() {
 
   const shareDeck = async () => {
     const url = `${window.location.origin}/deck/${deck.id}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: deck.title, url }); } catch { /* user cancelled */ }
-    } else {
-      try { await navigator.clipboard.writeText(url); toast({ description: "Link copied" }); } catch { /* ignore */ }
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      || (navigator.maxTouchPoints > 1 && /Mac/i.test(navigator.platform));
+    if (isMobile && navigator.share) {
+      try {
+        await navigator.share({ title: deck.title, url });
+        return;
+      } catch (e) {
+        if (e?.name === "AbortError") return; // user cancelled the share sheet
+        // otherwise fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ description: "Link copied" });
+    } catch {
+      toast({ description: "Couldn't copy the link" });
     }
   };
 
