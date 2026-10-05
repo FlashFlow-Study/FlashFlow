@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useSeo } from "@/lib/useSeo";
 import { toast } from "@/components/ui/use-toast";
+import TerminateConfirmDialog from "@/components/admin/TerminateConfirmDialog";
 
 const CATEGORY_LABEL = {
   inappropriate: "Inappropriate",
@@ -24,6 +25,8 @@ export default function AdminModeration() {
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
+  const [terminateId, setTerminateId] = useState(null);
+  const [terminating, setTerminating] = useState(false);
 
   useSeo("Moderation — Admin | FlashFlow", "Review flagged deck content and suspended accounts.");
 
@@ -76,43 +79,25 @@ export default function AdminModeration() {
     }
   };
 
-  const terminate = async (userId) => {
-    setBusy(`ban-${userId}`);
+  const terminate = (userId) => setTerminateId(userId);
+
+  const doTerminate = async (typedEmail) => {
+    setTerminating(true);
     try {
-      const existing = bans.find((b) => b.user_id === userId);
-      if (existing) {
-        await base44.entities.Ban.update(existing.id, { status: "banned", source: existing.source || "manual" });
-      } else {
-        const u = users[userId] || {};
-        await base44.entities.Ban.create({
-          user_id: userId,
-          full_name: u.full_name || "",
-          email: u.email || "",
-          reason: "Account terminated by admin following content moderation review.",
-          banned_date: new Date().toISOString(),
-          status: "banned",
-          source: "manual",
-        });
-      }
-      const userFlags = pendingFlags.filter((f) => f.user_id === userId);
-      if (userFlags.length) {
-        await base44.entities.ModerationFlag.bulkUpdate(
-          userFlags.map((f) => ({ id: f.id, status: "upheld" }))
-        );
-        setFlags((prev) => prev.map((f) => (f.user_id === userId && f.status === "pending" ? { ...f, status: "upheld" } : f)));
-      }
-      // Mark this user's recorded device fingerprints as terminated so future
-      // sign-ups from the same browser are flagged for ban evasion.
-      await base44.entities.DeviceFingerprint.updateMany(
-        { user_id: userId },
-        { $set: { terminated: true } }
-      ).catch(() => {});
-      toast({ description: "Account terminated." });
+      await base44.functions.invoke("terminateUser", {
+        user_id: terminateId,
+        confirm_email: typedEmail,
+      });
+      toast({ description: "Account terminated and all data wiped." });
+      setTerminateId(null);
       await load();
-    } catch {
-      /* ignore */
+    } catch (e) {
+      toast({
+        description: e?.data?.error || "Termination failed.",
+        variant: "destructive",
+      });
     } finally {
-      setBusy(null);
+      setTerminating(false);
     }
   };
 
@@ -270,6 +255,15 @@ export default function AdminModeration() {
           </section>
         </div>
       )}
+      <TerminateConfirmDialog
+        open={!!terminateId}
+        targetName={terminateId ? (users[terminateId]?.full_name || "") : ""}
+        targetEmail={terminateId ? (users[terminateId]?.email || "") : ""}
+        adminEmail={user?.email || ""}
+        busy={terminating}
+        onClose={() => setTerminateId(null)}
+        onConfirm={doTerminate}
+      />
     </div>
   );
 }

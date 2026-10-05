@@ -4,6 +4,8 @@ import { Loader2, ShieldCheck, Ban as BanIcon, User as UserIcon, Check, X } from
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useSeo } from "@/lib/useSeo";
+import { toast } from "@/components/ui/use-toast";
+import TerminateConfirmDialog from "@/components/admin/TerminateConfirmDialog";
 
 export default function AdminBanland() {
   const { user } = useAuth();
@@ -15,6 +17,8 @@ export default function AdminBanland() {
   const [search, setSearch] = useState("");
   const [draftId, setDraftId] = useState(null);
   const [draftReason, setDraftReason] = useState("");
+  const [terminateId, setTerminateId] = useState(null);
+  const [terminating, setTerminating] = useState(false);
 
   useSeo("Banland — Admin | FlashFlow", "Admin panel to ban and unban FlashFlow users.");
 
@@ -93,6 +97,26 @@ export default function AdminBanland() {
       /* ignore */
     } finally {
       setBusy(null);
+    }
+  };
+
+  const doTerminate = async (typedEmail) => {
+    setTerminating(true);
+    try {
+      await base44.functions.invoke("terminateUser", {
+        user_id: terminateId,
+        confirm_email: typedEmail,
+      });
+      toast({ description: "Account terminated and all data wiped." });
+      setTerminateId(null);
+      await load();
+    } catch (e) {
+      toast({
+        description: e?.data?.error || "Termination failed.",
+        variant: "destructive",
+      });
+    } finally {
+      setTerminating(false);
     }
   };
 
@@ -197,6 +221,14 @@ export default function AdminBanland() {
                         Unban
                       </button>
                     )}
+                    {!admin && !self && (
+                      <button
+                        onClick={() => setTerminateId(u.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-destructive/10 text-destructive border border-destructive/40 font-mono text-[10px] uppercase tracking-widest rounded-md hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      >
+                        <BanIcon className="w-3 h-3" /> Terminate
+                      </button>
+                    )}
                   </div>
                 </div>
                 {isDraft && (
@@ -238,6 +270,15 @@ export default function AdminBanland() {
           )}
         </div>
       )}
+      <TerminateConfirmDialog
+        open={!!terminateId}
+        targetName={terminateId ? (users.find((x) => x.id === terminateId)?.full_name || "") : ""}
+        targetEmail={terminateId ? (users.find((x) => x.id === terminateId)?.email || "") : ""}
+        adminEmail={user?.email || ""}
+        busy={terminating}
+        onClose={() => setTerminateId(null)}
+        onConfirm={doTerminate}
+      />
     </div>
   );
 }
