@@ -1,0 +1,48 @@
+{
+  "name": "DeviceFingerprint",
+  "type": "object",
+  "properties": {
+    "fingerprint_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "terminated": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "fingerprint_hash",
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

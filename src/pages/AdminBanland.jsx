@@ -61,6 +61,12 @@ export default function AdminBanland() {
         status: "banned",
         source: "manual",
       });
+      // Mark this user's recorded device fingerprints as terminated so future
+      // sign-ups from the same browser are flagged for ban evasion.
+      await base44.entities.DeviceFingerprint.updateMany(
+        { user_id: u.id },
+        { $set: { terminated: true } }
+      ).catch(() => {});
       const fresh = await base44.entities.Ban.filter({ user_id: u.id });
       setBans((prev) => ({ ...prev, [u.id]: fresh[0] }));
       setDraftId(null);

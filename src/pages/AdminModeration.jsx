@@ -101,6 +101,12 @@ export default function AdminModeration() {
         );
         setFlags((prev) => prev.map((f) => (f.user_id === userId && f.status === "pending" ? { ...f, status: "upheld" } : f)));
       }
+      // Mark this user's recorded device fingerprints as terminated so future
+      // sign-ups from the same browser are flagged for ban evasion.
+      await base44.entities.DeviceFingerprint.updateMany(
+        { user_id: userId },
+        { $set: { terminated: true } }
+      ).catch(() => {});
       toast({ description: "Account terminated." });
       await load();
     } catch {

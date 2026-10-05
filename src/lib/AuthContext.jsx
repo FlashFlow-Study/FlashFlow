@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import { generateFingerprint } from '@/lib/fingerprint';
 
 const AuthContext = createContext();
 
@@ -92,7 +93,25 @@ export const AuthProvider = ({ children }) => {
       // the app before being blocked.
       try {
         const banRecs = await base44.entities.Ban.filter({ user_id: currentUser.id });
-        setBan(banRecs && banRecs.length ? banRecs[0] : null);
+        if (banRecs && banRecs.length) {
+          setBan(banRecs[0]);
+        } else {
+          setBan(null);
+          // Device-fingerprint ban-evasion check: compare this browser's
+          // fingerprint against terminated accounts. If it matches, the
+          // function bans this account; reload so the banned screen appears.
+          // A check failure never blocks login.
+          try {
+            const fingerprintHash = await generateFingerprint();
+            const res = await base44.functions.invoke("checkFingerprint", { fingerprint_hash: fingerprintHash });
+            if (res?.data?.banned) {
+              window.location.reload();
+              return;
+            }
+          } catch {
+            /* ignore — never block login on a fingerprint check failure */
+          }
+        }
       } catch {
         setBan(null);
       } finally {
