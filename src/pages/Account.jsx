@@ -5,7 +5,6 @@ import { LogOut, KeyRound, Trash2, Loader2, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import StatCard from "@/components/StatCard";
-import { useVerifications } from "@/hooks/useVerifications";
 import UserBadges from "@/components/UserBadges";
 import {
   AlertDialog,
@@ -30,7 +29,14 @@ export default function Account() {
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState("");
   const [togglingTeacher, setTogglingTeacher] = useState(false);
-  const { badges: vBadges } = useVerifications([user?.id].filter(Boolean));
+  const [ownBadge, setOwnBadge] = useState(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    base44.entities.CreatorBadge.filter({ user_id: user.id })
+      .then((recs) => setOwnBadge(recs[0] || null))
+      .catch(() => {});
+  }, [user?.id]);
 
   useEffect(() => {
     (async () => {
@@ -62,7 +68,8 @@ export default function Account() {
   }, [user?.id]);
 
   const cardsStudied = sessions.reduce((s, x) => s + (x.cards_studied || 0), 0);
-  const myBadges = { verified: user?.role === "admin" || vBadges(user?.id).verified, admin: user?.role === "admin" };
+  const isAdminUser = user?.role === "admin" || ownBadge?.is_admin === true;
+  const myBadges = { verified: isAdminUser || ownBadge?.is_verified === true, admin: isAdminUser };
 
   const saveName = async () => {
     setSavingName(true);
