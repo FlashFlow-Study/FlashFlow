@@ -20,6 +20,26 @@
     "banned_date": {
       "type": "string",
       "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_review",
+        "banned"
+      ],
+      "default": "banned"
+    },
+    "flag_count": {
+      "type": "number",
+      "default": 0
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "auto_moderation"
+      ],
+      "default": "manual"
     }
   },
   "required": [

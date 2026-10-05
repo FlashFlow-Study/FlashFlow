@@ -37,6 +37,7 @@ import AdminBanland from './pages/AdminBanland';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import AdminBlog from './pages/AdminBlog';
+import AdminModeration from './pages/AdminModeration';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -72,7 +73,7 @@ const AuthenticatedApp = () => {
   }
 
   // Block banned users from using the app.
-  if (ban) return <BannedScreen reason={ban?.reason} />;
+  if (ban) return <BannedScreen ban={ban} />;
 
   // Render the main app
   return (
@@ -109,6 +110,7 @@ const AuthenticatedApp = () => {
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/banland" element={<AdminBanland />} />
           <Route path="/admin/blog" element={<AdminBlog />} />
+          <Route path="/admin/moderation" element={<AdminModeration />} />
           <Route path="/admin/verify" element={<AdminVerify />} />
           <Route path="/teacher" element={<TeacherDashboard />} />
           </Route>

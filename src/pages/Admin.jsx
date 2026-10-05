@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Ban as BanIcon, ShieldCheck, FileLock, Loader2, Lock, Newspaper } from "lucide-react";
+import { Ban as BanIcon, ShieldCheck, FileLock, Loader2, Lock, Newspaper, ShieldAlert } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useSeo } from "@/lib/useSeo";
@@ -11,6 +11,7 @@ export default function Admin() {
   const isAdmin = user?.role === "admin";
   const [bannedCount, setBannedCount] = useState(null);
   const [pendingVerify, setPendingVerify] = useState(null);
+  const [pendingFlags, setPendingFlags] = useState(null);
 
   useSeo("Admin | FlashFlow", "FlashFlow administration overview.");
 
@@ -18,15 +19,18 @@ export default function Admin() {
     if (!isAdmin) return;
     (async () => {
       try {
-        const [bans, verifications] = await Promise.all([
+        const [bans, verifications, flags] = await Promise.all([
           base44.entities.Ban.list(undefined, 500),
           base44.entities.Verification.list(undefined, 500),
+          base44.entities.ModerationFlag.list(undefined, 500).catch(() => []),
         ]);
-        setBannedCount(bans.length);
+        setBannedCount(bans.filter((b) => b.status !== "pending_review").length);
         setPendingVerify(verifications.filter((v) => !v.is_verified).length);
+        setPendingFlags(flags.filter((f) => f.status === "pending").length);
       } catch {
         setBannedCount(0);
         setPendingVerify(0);
+        setPendingFlags(0);
       }
     })();
   }, [isAdmin]);
@@ -67,6 +71,14 @@ export default function Admin() {
       icon: FileLock,
       title: "Data privacy",
       desc: "Export or erase user data for GDPR requests.",
+    },
+    {
+      to: "/admin/moderation",
+      icon: ShieldAlert,
+      title: "Moderation",
+      desc: "Review flagged decks and suspended accounts, and terminate accounts.",
+      stat: pendingFlags,
+      statLabel: "flags",
     },
     {
       to: "/admin/blog",

@@ -58,6 +58,8 @@ export default function AdminBanland() {
         email: u.email || "",
         reason: draftReason.trim(),
         banned_date: new Date().toISOString(),
+        status: "banned",
+        source: "manual",
       });
       const fresh = await base44.entities.Ban.filter({ user_id: u.id });
       setBans((prev) => ({ ...prev, [u.id]: fresh[0] }));
@@ -163,7 +165,7 @@ export default function AdminBanland() {
                       </span>
                     ) : banned ? (
                       <span className="inline-flex items-center gap-1 px-2 py-1 border border-destructive/40 text-destructive rounded-full font-mono text-[9px] uppercase tracking-widest">
-                        <BanIcon className="w-3 h-3" /> Banned
+                        <BanIcon className="w-3 h-3" /> {ban?.status === "pending_review" ? "Suspended" : "Banned"}
                       </span>
                     ) : (
                       <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Active</span>

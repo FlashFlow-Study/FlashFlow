@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Layers, Globe, Lock, Trash2, Play, Pencil, User, Star, School, Link2, Share2 } from "lucide-react";
+import { Layers, Globe, Lock, Trash2, Play, Pencil, User, Star, School, Link2, Share2, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ExportMenu from "@/components/ExportMenu";
 import StarToggle from "@/components/StarToggle";
@@ -26,6 +26,7 @@ export default function DeckDetail() {
   const [starredIds, setStarredIds] = useState(new Set());
   const [starredRecords, setStarredRecords] = useState({});
   const [starredOnly, setStarredOnly] = useState(false);
+  const [moderating, setModerating] = useState(false);
   const { creatorName } = useCreators(deck ? [deck] : []);
 
   useEffect(() => {
@@ -66,6 +67,33 @@ export default function DeckDetail() {
       if (assignments.length) {
         toast({ description: "You can't make a classroom set public. To make a set public, unassign it from a class first.", variant: "destructive" });
         return;
+      }
+    }
+    // Before exposing a deck publicly or via an unlisted link, scan it for
+    // inappropriate or copyrighted material (text + card photos). Block the
+    // change if it's flagged; repeated flags auto-suspend the account.
+    if (next === "public" || next === "unlisted") {
+      setModerating(true);
+      try {
+        const res = await base44.functions.invoke("moderateDeck", { deck_id: id });
+        const v = res?.data || {};
+        if (v.flagged) {
+          toast({
+            description: `This deck can't be made ${next}: ${v.category} content detected. ${v.reason || ""}`,
+            variant: "destructive",
+          });
+          if (v.suspended) {
+            // Account was just auto-suspended; reload so the suspended screen
+            // takes over.
+            setTimeout(() => window.location.reload(), 1500);
+          }
+          return;
+        }
+      } catch {
+        toast({ description: "Couldn't scan this deck for policy violations. Try again in a moment.", variant: "destructive" });
+        return;
+      } finally {
+        setModerating(false);
       }
     }
     const updated = await base44.entities.Deck.update(id, { visibility: next, is_public: next === "public" });
@@ -235,7 +263,14 @@ export default function DeckDetail() {
               >
                 <Pencil className="w-3.5 h-3.5 inline mr-1.5" /> Edit
               </Link>
-              <VisibilityPicker value={vis} onChange={setVisibility} />
+              <div className="inline-flex items-center gap-2">
+                <VisibilityPicker value={vis} onChange={setVisibility} />
+                {moderating && (
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Scanning…
+                  </span>
+                )}
+              </div>
               <button
                 onClick={remove}
                 className="px-4 py-2.5 border border-slate-200 font-mono text-xs uppercase tracking-widest text-destructive hover:border-destructive transition-colors rounded-md"

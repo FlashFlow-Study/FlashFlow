@@ -140,6 +140,30 @@ export default function EditDeck() {
       if (toUpdate.length) await base44.entities.Card.bulkUpdate(toUpdate);
       if (toCreate.length) await base44.entities.Card.bulkCreate(toCreate);
       await syncDeckCardsVisibility(id, visibility, deckClassroomMembers);
+      // If the deck is being made public or unlisted, scan it for policy
+      // violations (text + card photos). If flagged, pull it back to private
+      // so it never sits publicly while a flag is unresolved, and surface the
+      // reason. The flag itself is already recorded by the scan.
+      if (visibility === "public" || visibility === "unlisted") {
+        try {
+          const res = await base44.functions.invoke("moderateDeck", { deck_id: id });
+          const v = res?.data || {};
+          if (v.flagged) {
+            await base44.entities.Deck.update(id, { visibility: "private", is_public: false });
+            await syncDeckCardsVisibility(id, "private", deckClassroomMembers);
+            setError(`This deck can't be made ${visibility}: ${v.category} content detected. ${v.reason || ""} It's been kept private.`);
+            if (v.suspended) setTimeout(() => window.location.reload(), 1500);
+            return;
+          }
+        } catch {
+          // If the scan itself fails after a public save, be safe and pull the
+          // deck back to private rather than leave it unscanned in public.
+          await base44.entities.Deck.update(id, { visibility: "private", is_public: false });
+          await syncDeckCardsVisibility(id, "private", deckClassroomMembers);
+          setError("Couldn't scan this deck for policy violations. It's been kept private — try again in a moment.");
+          return;
+        }
+      }
       navigate(`/deck/${id}`);
     } catch (e) {
       setError(e.response?.data?.error || "Couldn't save your changes.");

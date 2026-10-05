@@ -1,0 +1,83 @@
+{
+  "name": "ModerationFlag",
+  "type": "object",
+  "properties": {
+    "deck_id": {
+      "type": "string"
+    },
+    "deck_title": {
+      "type": "string",
+      "default": ""
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "inappropriate",
+        "copyright"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "reason": {
+      "type": "string",
+      "default": ""
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "upheld",
+        "dismissed"
+      ],
+      "default": "pending"
+    },
+    "scanned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "image_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "deck_id",
+    "user_id",
+    "category"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
