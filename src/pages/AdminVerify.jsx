@@ -66,6 +66,28 @@ export default function AdminVerify() {
       const fresh = await base44.entities.Verification.list("-updated_date", 500);
       const map = {};
       fresh.forEach((r) => { map[r.user_id] = r; });
+
+      // Mirror verification state into the public CreatorBadge records so
+      // badges render for everyone without exposing names/emails.
+      const existingBadges = await base44.entities.CreatorBadge.list("-updated_date", 500).catch(() => []);
+      const badgeByUid = {};
+      existingBadges.forEach((b) => { badgeByUid[b.user_id] = b; });
+      const badgeCreate = [];
+      const badgeUpdate = [];
+      allUsers.forEach((u) => {
+        const r = map[u.id];
+        const isVerified = u.role === "admin" ? true : !!r?.is_verified;
+        const isAdmin = u.role === "admin";
+        const b = badgeByUid[u.id];
+        if (!b) {
+          badgeCreate.push({ user_id: u.id, is_verified: isVerified, is_admin: isAdmin });
+        } else if (b.is_verified !== isVerified || b.is_admin !== isAdmin) {
+          badgeUpdate.push({ id: b.id, is_verified: isVerified, is_admin: isAdmin });
+        }
+      });
+      if (badgeCreate.length) await base44.entities.CreatorBadge.bulkCreate(badgeCreate).catch(() => {});
+      if (badgeUpdate.length) await base44.entities.CreatorBadge.bulkUpdate(badgeUpdate).catch(() => {});
+
       setUsers(allUsers);
       setRecords(map);
     } catch {
@@ -92,6 +114,15 @@ export default function AdminVerify() {
     try {
       const next = !r.is_verified;
       await base44.entities.Verification.update(r.id, { is_verified: next });
+      // Mirror the change to the public CreatorBadge.
+      try {
+        const badges = await base44.entities.CreatorBadge.filter({ user_id: u.id });
+        if (badges.length) {
+          await base44.entities.CreatorBadge.update(badges[0].id, { is_verified: next });
+        } else {
+          await base44.entities.CreatorBadge.create({ user_id: u.id, is_verified: next, is_admin: false });
+        }
+      } catch { /* ignore */ }
       setRecords((prev) => ({ ...prev, [u.id]: { ...r, is_verified: next } }));
     } catch {
       /* ignore */
