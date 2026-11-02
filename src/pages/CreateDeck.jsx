@@ -12,6 +12,7 @@ import LanguagePairSelect from "@/components/LanguagePairSelect";
 import { DEFAULT_SOURCE_LANG, DEFAULT_TARGET_LANG } from "@/lib/deckLanguages";
 import SwapSidesButton from "@/components/SwapSidesButton";
 import CardImageUpload from "@/components/CardImageUpload";
+import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 import { toast } from "@/components/ui/use-toast";
 
 export default function CreateDeck() {
@@ -138,11 +139,15 @@ export default function CreateDeck() {
         });
         classroomMembers = memberships.map((m) => m.user_id).filter(Boolean);
       }
+      const wantsPublic = !selectedClassroom && isPublic;
+      // Always create the deck private first. A set that is meant to be public
+      // has to pass the content scan before anyone else can read it, so it is
+      // created locked down, scanned, then published only if it comes back clean.
       const deck = await base44.entities.Deck.create({
         title: title.trim(),
         description: description.trim(),
-        is_public: selectedClassroom ? false : isPublic,
-        visibility: selectedClassroom ? "private" : isPublic ? "public" : "private",
+        is_public: false,
+        visibility: "private",
         tags: tags
           .split(",")
           .map((t) => t.trim().toLowerCase())
@@ -164,10 +169,37 @@ export default function CreateDeck() {
           orientation: c.orientation || "normal",
           term_image_url: c.term_image_url || undefined,
           definition_image_url: c.definition_image_url || undefined,
-          deck_is_public: selectedClassroom ? false : isPublic,
+          deck_is_public: false,
           deck_classroom_members: classroomMembers,
         }))
       );
+
+      // Sets created as public are scanned here, at creation, exactly like the
+      // public toggle on an existing set. A flagged set stays private (nothing
+      // is lost) and the reason is shown.
+      if (wantsPublic) {
+        try {
+          const res = await base44.functions.invoke("moderateDeck", { deck_id: deck.id });
+          const v = res?.data || {};
+          if (v.flagged) {
+            toast({
+              description: `This set was saved as private: ${v.category} content detected. ${v.reason || ""}`,
+              variant: "destructive",
+            });
+            if (v.suspended) setTimeout(() => window.location.reload(), 1500);
+          } else {
+            await base44.entities.Deck.update(deck.id, { is_public: true, visibility: "public" });
+            await syncDeckCardsVisibility(deck.id, "public", []);
+          }
+        } catch {
+          toast({
+            description:
+              "Couldn't scan this set, so it was saved as private. You can try making it public from the set's page.",
+            variant: "destructive",
+          });
+        }
+      }
+
       navigate(`/deck/${deck.id}`);
     } catch (e) {
       setError(e.response?.data?.error || "Couldn't save your deck.");
@@ -460,7 +492,7 @@ export default function CreateDeck() {
           disabled={saving}
           className="mt-8 w-full px-6 py-3.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest disabled:opacity-40 hover:opacity-90 transition-opacity"
         >
-          {saving ? "Saving…" : "Save deck"}
+          {saving ? (isPublic && !selectedClassroom ? "Scanning…" : "Saving…") : "Save deck"}
         </button>
       </div>
     </div>

@@ -34,9 +34,18 @@ export default function Home() {
   const [ownedClassrooms, setOwnedClassrooms] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [completions, setCompletions] = useState([]);
+  const [favIds, setFavIds] = useState(new Set());
+  const [favRecords, setFavRecords] = useState({});
   const [loading, setLoading] = useState(true);
-  const [recentIds] = useState(() => getRecentDeckIds());
+  const [recentIds, setRecentIds] = useState(() => getRecentDeckIds(user?.id));
   const { creatorName } = useCreators(allDecks);
+
+  // Re-read recents whenever the signed-in account changes so each user's
+  // recently opened sets stay isolated (and the anonymous list is cleared on
+  // first sign-in).
+  useEffect(() => {
+    setRecentIds(getRecentDeckIds(user?.id));
+  }, [user?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,16 +65,33 @@ export default function Home() {
           }
         };
         const safe = (p) => p.catch(() => []);
-        const [decks, sess, myMemberships, myClassrooms, myAssignments, myCompletions] = await Promise.all([
+        const [decks, sess, myMemberships, myClassrooms, myAssignments, myCompletions, favs] = await Promise.all([
           safe(withRetry(() => base44.entities.Deck.list("-created_date", 100))),
           safe(withRetry(() => base44.entities.StudySession.list("-created_date", 100))),
           safe(withRetry(() => base44.entities.ClassroomMembership.filter({ student_email: user?.email }))),
           safe(withRetry(() => base44.entities.Classroom.filter({ created_by_id: user?.id }))),
           safe(withRetry(() => base44.entities.Assignment.list("-created_date", 100))),
           safe(withRetry(() => base44.entities.AssignmentCompletion.filter({ student_email: user?.email }))),
+          user ? safe(withRetry(() => base44.entities.FavouriteDeck.list("-created_date", 500))) : Promise.resolve([]),
         ]);
         if (cancelled) return;
-        setAllDecks(decks);
+        const favIdSet = new Set(favs.map((f) => f.deck_id));
+        const favRecMap = {};
+        favs.forEach((f) => { favRecMap[f.deck_id] = f.id; });
+        setFavIds(favIdSet);
+        setFavRecords(favRecMap);
+        // Pull in any favourited decks that weren't in the initial 100-deck
+        // list, so the Favourites section always shows every bookmarked set.
+        const missingFavIds = [...favIdSet].filter((fid) => !decks.find((d) => d.id === fid));
+        let extraDecks = [];
+        if (missingFavIds.length) {
+          extraDecks = (await Promise.all(
+            missingFavIds.map((fid) => base44.entities.Deck.get(fid).catch(() => null))
+          )).filter(Boolean);
+        }
+        const allLoaded = extraDecks.length ? [...decks, ...extraDecks] : decks;
+        if (cancelled) return;
+        setAllDecks(allLoaded);
         setSessions(sess);
         setMemberships(myMemberships);
         setOwnedClassrooms(myClassrooms);
@@ -79,8 +105,8 @@ export default function Home() {
         const isMine = (d) => d.created_by_id === user?.id;
         const isClassroom = (d) => d.classroom_id && d.created_by_id !== user?.id && userClassroomIds.has(d.classroom_id);
         const isPub = (d) => d.is_public && d.created_by_id !== user?.id;
-        const counted = decks.filter(
-          (d) => isMine(d) || isClassroom(d) || recentIds.includes(d.id) || (query && isPub(d))
+        const counted = allLoaded.filter(
+          (d) => isMine(d) || isClassroom(d) || recentIds.includes(d.id) || (query && isPub(d)) || favIdSet.has(d.id)
         );
         // One bulk request for all displayed decks' cards, counted client-side,
         // instead of one request per deck (which exceeded the API rate limit).
@@ -138,6 +164,36 @@ export default function Home() {
     .map((rid) => allDecks.find((d) => d.id === rid))
     .filter(Boolean)
     .slice(0, 4);
+
+  const favouriteDecks = allDecks.filter((d) => favIds.has(d.id));
+
+  const toggleFavourite = async (deckId, deckTitle = "") => {
+    if (!user) return;
+    if (favIds.has(deckId)) {
+      try {
+        await base44.entities.FavouriteDeck.delete(favRecords[deckId]);
+        setFavIds((prev) => {
+          const n = new Set(prev);
+          n.delete(deckId);
+          return n;
+        });
+        setFavRecords((prev) => {
+          const n = { ...prev };
+          delete n[deckId];
+          return n;
+        });
+      } catch { /* ignore */ }
+    } else {
+      try {
+        const rec = await base44.entities.FavouriteDeck.create({
+          deck_id: deckId,
+          deck_title: deckTitle,
+        });
+        setFavIds((prev) => new Set(prev).add(deckId));
+        setFavRecords((prev) => ({ ...prev, [deckId]: rec.id }));
+      } catch { /* ignore */ }
+    }
+  };
 
   const cardsStudied = sessions.reduce((sum, s) => sum + (s.cards_studied || 0), 0);
   const decksCreated = mine.length;
@@ -268,6 +324,35 @@ export default function Home() {
                 lastStudied={lastStudied[d.id]}
                 creatorName={creatorName(d)}
                 compact
+                favourited={favIds.has(d.id)}
+                onToggle={() => toggleFavourite(d.id, d.title)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Favourites */}
+      {!query && user && favouriteDecks.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-5">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Favourites</h2>
+            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground mt-1">
+              Your bookmarked decks
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {favouriteDecks.map((d, i) => (
+              <DeckCard
+                key={d.id}
+                deck={d}
+                index={i}
+                cardCount={counts[d.id]}
+                lastStudied={lastStudied[d.id]}
+                creatorName={creatorName(d)}
+                compact
+                favourited={favIds.has(d.id)}
+                onToggle={() => toggleFavourite(d.id, d.title)}
               />
             ))}
           </div>
@@ -308,7 +393,7 @@ export default function Home() {
               {mineFiltered.length} {mineFiltered.length === 1 ? "deck" : "decks"}
             </p>
           </div>
-          {mineFiltered.length > 0 && (
+          {mineFiltered.length > 3 && (
             <Link to="/my-decks" className="font-mono text-[10px] uppercase tracking-widest text-primary hover:underline">
               View all →
             </Link>
@@ -335,13 +420,15 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mineFiltered.map((d, i) => (
+            {mineFiltered.slice(0, 3).map((d, i) => (
               <DeckCard
                 key={d.id}
                 deck={d}
                 index={i}
                 cardCount={counts[d.id]}
                 lastStudied={lastStudied[d.id]}
+                favourited={favIds.has(d.id)}
+                onToggle={() => toggleFavourite(d.id, d.title)}
               />
             ))}
             <Link
@@ -383,6 +470,8 @@ export default function Home() {
                   cardCount={counts[d.id]}
                   lastStudied={lastStudied[d.id]}
                   creatorName={creatorName(d)}
+                  favourited={favIds.has(d.id)}
+                  onToggle={() => toggleFavourite(d.id, d.title)}
                 />
               ))}
             </div>
@@ -408,6 +497,8 @@ export default function Home() {
                 cardCount={counts[d.id]}
                 lastStudied={lastStudied[d.id]}
                 creatorName={creatorName(d)}
+                favourited={favIds.has(d.id)}
+                onToggle={() => toggleFavourite(d.id, d.title)}
               />
             ))}
           </div>

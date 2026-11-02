@@ -16,7 +16,8 @@
       "type": "string",
       "enum": [
         "inappropriate",
-        "copyright"
+        "copyright",
+        "trademark"
       ]
     },
     "severity": {

@@ -1,110 +1,62 @@
-# FlashFlow Study
+# Base44 Project
 
-> A modern, student-focused study platform built for schools.
+Use this repository to run and edit the app locally, then publish changes back through Base44.
 
-FlashFlow Study is a web-based learning platform designed to make revision and classroom study simpler for students and teachers.
+Any change pushed to the repo will also be reflected in the Base44 Builder.
 
-It was originally created as a practical alternative to existing study tools, with a focus on **simplicity, classroom integration and privacy-conscious design**.
+## Prerequisites
 
-## ✨ Features
+1. Clone the repository using the project's Git URL.
+2. Navigate to the project directory.
+3. Install dependencies: `npm install`.
+4. Install the Base44 CLI: `npm install -g base44@latest`.
+5. Install [Deno](https://docs.deno.com/runtime/getting_started/installation/) — the local Base44 backend runs on it.
 
-### 👨‍🎓 For Students
-- 🔐 Google Sign-In
-- 📚 Create and study flashcard decks
-- 🏫 Join classrooms using a code
-- 📝 Complete teacher-assigned work
-- 📈 Track your study progress
-- 💻 Designed to work well on school Chromebooks and other devices
+Run `base44 --help` (or see the [CLI reference](https://docs.base44.com/developers/references/cli/commands/introduction)) for the full command surface.
 
-### 👩‍🏫 For Teachers
-- 🏫 Create and manage classrooms
-- 📚 Create and assign study decks
-- 📝 Create assignments for students
-- 📊 Teacher dashboards
-- 👥 Manage students within classes
-- 📈 View student progress and assignment results
+## Run Locally
 
-## 🎯 Why FlashFlow?
+Three commands, from the project root:
 
-FlashFlow Study was created with real school use in mind.
+```bash
+base44 login   # one-time per machine
+base44 link    # one-time per clone
+base44 dev     # local backend + frontend together
+```
 
-The platform is designed to provide students with a straightforward revision experience while giving teachers the tools they need to organise study materials and assignments.
+Open the frontend URL that `base44 dev` prints (typically `http://localhost:5173`).
 
-Rather than requiring students to use multiple platforms for different parts of their revision, FlashFlow aims to bring these features together in one place.
+Notes:
 
-## 🔒 Privacy
+- **Every fresh clone needs `base44 link`.** It writes `base44/.app.jsonc` (the app-id pointer), which is deliberately gitignored. Your app id is in the Builder URL (`app.base44.com/apps/<id>/...`); `base44 link --help` shows the non-interactive flags.
+- **`base44 dev` runs the frontend for you** (via `site.serveCommand` in this repo's `base44/config.jsonc`) — never run `npm run dev` yourself: alone it serves a UI with no backend behind it (`[base44] Proxy not enabled`, every `/api` call fails), and alongside `base44 dev` the second Vite silently takes the next port and you end up looking at the wrong one.
+- **The app must be published at least once for the UI to load under `base44 dev`.** The frontend boots by fetching app settings from the hosted app; before the first publish that fails and every page redirects to login. The local API works regardless.
+- Entities, functions, and auth run locally — entity data is **in-memory only**, wiped when `base44 dev` restarts. Everything else (Core integrations, OAuth login) is forwarded to your deployed app. Full breakdown: [Local development overview](https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview).
 
-Privacy is an important part of FlashFlow Study's development, particularly because the platform is designed for use by students and schools.
+## Frontend Only, Hosted Backend
 
-We aim to:
+To work on just the frontend against your app's live hosted backend:
 
-- Collect only the information needed to provide the service
-- Clearly explain how user data is used
-- Avoid unnecessary collection of personal information
-- Provide appropriate controls for schools and administrators
-- Protect user information through appropriate technical and organisational measures
+```bash
+base44 dev --remote
+```
 
-For information about how FlashFlow Study handles data, see our [**Privacy & Data Information Page**](https://flashflowstudy.com/privacy), which is regularly updated when necessary.
+⚠️ In this mode writes go to your app's **production data** — plain `base44 dev` keeps everything local.
 
-> **Note:** Privacy and data-protection arrangements may vary depending on how FlashFlow Study is deployed by a school or organisation.
+## Publish Your Changes
 
-## 🏫 School Integration
+After pushing your changes to git, open the Base44 dashboard and publish the app:
 
-FlashFlow Study supports school-focused features including:
+```bash
+base44 dashboard open
+```
 
-- Google account authentication
-- School classrooms
-- Teacher-managed assignments
-- Student accounts
-- Classroom join codes
-- Teacher dashboards
+This repo syncs to Base44 through git, so publish from the dashboard rather than `base44 deploy` — a CLI deploy ships your local tree directly, bypassing the sync, and the deployed state silently diverges from the repo.
 
-Google Sign-In for school-managed accounts may require approval from the organisation's Google Workspace administrator before students and staff can access the service.
+## Docs & Support
 
-## 🚀 Current Status
+GitHub integration: [https://docs.base44.com/developers/app-code/local-development/github](https://docs.base44.com/developers/app-code/local-development/github)
 
-FlashFlow Study is currently under active development.
+Local development: [https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview](https://docs.base44.com/developers/backend/overview/local-dev/local-development-overview)
 
-The platform is already being used by students, with additional teacher and classroom functionality being developed and tested.
-
-Current development is focused on:
-
-- Improving teacher tools
-- Improving student progress tracking
-- Strengthening privacy and security
-- Improving accessibility and usability
-- Preparing the platform for potential school-wide testing
-
-## 🛠️ Technology
-
-FlashFlow Study is a web application designed to work across modern browsers and devices, including school-managed Chromebooks.
-
-The project uses a combination of web technologies and third-party services to provide authentication, data storage and other functionality.
-
-See the project's source code and configuration for the specific technologies currently used.
-
-## 🤝 Contributing
-
-FlashFlow Study is currently primarily developed as an independent project.
-
-If you have suggestions, find a bug, or would like to contribute, please open an issue or contact the project maintainer.
-
-### Reporting a security issue
-
-Please **do not publicly disclose sensitive security vulnerabilities** through a GitHub issue.
-
-Instead, contact the project maintainer privately with details of the issue so that it can be investigated.
-
-## 📄 Licence
-
-This project is currently **not licensed for unrestricted reuse**.
-
-Unless otherwise stated, the source code and other materials in this repository remain the property of the project author.
-
-## 🌐 Website
-
-**[flashflowstudy.com](https://flashflowstudy.com)**
-
----
-
-Built with the goal of making studying a little less painful. 📚
+Support: [https://app.base44.com/support](https://app.base44.com/support)

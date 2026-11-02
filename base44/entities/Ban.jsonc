@@ -29,6 +29,10 @@
       ],
       "default": "banned"
     },
+    "terminated": {
+      "type": "boolean",
+      "default": false
+    },
     "flag_count": {
       "type": "number",
       "default": 0

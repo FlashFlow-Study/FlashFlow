@@ -1,0 +1,73 @@
+{
+  "name": "ExamAttempt",
+  "type": "object",
+  "properties": {
+    "deck_id": {
+      "type": "string"
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question_id": {
+            "type": "string"
+          },
+          "answer_text": {
+            "type": "string",
+            "default": ""
+          },
+          "awarded_marks": {
+            "type": "number",
+            "default": 0
+          },
+          "max_marks": {
+            "type": "number",
+            "default": 0
+          },
+          "feedback": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "required": [
+          "question_id"
+        ]
+      },
+      "default": []
+    },
+    "score": {
+      "type": "number",
+      "default": 0
+    },
+    "total_marks": {
+      "type": "number",
+      "default": 0
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "ai_marked": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "deck_id"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

@@ -5,11 +5,11 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useSeo } from "@/lib/useSeo";
 import { toast } from "@/components/ui/use-toast";
-import TerminateConfirmDialog from "@/components/admin/TerminateConfirmDialog";
 
 const CATEGORY_LABEL = {
   inappropriate: "Inappropriate",
   copyright: "Copyrighted",
+  trademark: "Trademark",
 };
 const SEVERITY_TONE = {
   low: "border-amber-300 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30",
@@ -25,8 +25,6 @@ export default function AdminModeration() {
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
-  const [terminateId, setTerminateId] = useState(null);
-  const [terminating, setTerminating] = useState(false);
 
   useSeo("Moderation — Admin | FlashFlow", "Review flagged deck content and suspended accounts.");
 
@@ -67,6 +65,46 @@ export default function AdminModeration() {
   const pendingFlags = flags.filter((f) => f.status === "pending");
   const suspendedBans = bans.filter((b) => b.status === "pending_review");
 
+  // Ban a user: block their access (reversible from Banland). This is distinct
+  // from terminating an account, which permanently wipes all data and is only
+  // available from Banland. Here we either promote an existing suspension to a
+  // full ban or create a new ban record, and mark the user's pending flags as
+  // upheld so they leave the review queue.
+  const banUser = async (userId) => {
+    setBusy(`ban-${userId}`);
+    try {
+      const u = users[userId] || {};
+      const existing = bans.find((b) => b.user_id === userId);
+      if (existing) {
+        await base44.entities.Ban.update(existing.id, { status: "banned" });
+      } else {
+        await base44.entities.Ban.create({
+          user_id: userId,
+          full_name: u.full_name || "",
+          email: u.email || "",
+          reason: "Flagged content upheld by moderator",
+          banned_date: new Date().toISOString(),
+          status: "banned",
+          source: "auto_moderation",
+        });
+        // Device fingerprints are only flagged on full termination (see
+        // terminateUser), not on a ban — a ban must stay reversible.
+      }
+      const userFlags = pendingFlags.filter((f) => f.user_id === userId);
+      if (userFlags.length) {
+        await base44.entities.ModerationFlag.bulkUpdate(
+          userFlags.map((f) => ({ id: f.id, status: "upheld" }))
+        );
+      }
+      toast({ description: "User banned. They can no longer access FlashFlow." });
+      await load();
+    } catch {
+      toast({ description: "Couldn't ban this user.", variant: "destructive" });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const setFlagStatus = async (flag, status) => {
     setBusy(flag.id);
     try {
@@ -76,28 +114,6 @@ export default function AdminModeration() {
       /* ignore */
     } finally {
       setBusy(null);
-    }
-  };
-
-  const terminate = (userId) => setTerminateId(userId);
-
-  const doTerminate = async (typedEmail) => {
-    setTerminating(true);
-    try {
-      await base44.functions.invoke("terminateUser", {
-        user_id: terminateId,
-        confirm_email: typedEmail,
-      });
-      toast({ description: "Account terminated and all data wiped." });
-      setTerminateId(null);
-      await load();
-    } catch (e) {
-      toast({
-        description: e?.data?.error || "Termination failed.",
-        variant: "destructive",
-      });
-    } finally {
-      setTerminating(false);
     }
   };
 
@@ -140,7 +156,8 @@ export default function AdminModeration() {
       <h1 className="mt-4 font-display text-4xl font-bold text-foreground tracking-tight">Content moderation</h1>
       <p className="mt-2 font-body text-sm text-muted-foreground max-w-lg">
         Decks are scanned for inappropriate or copyrighted material before they go public. Repeated violations auto-suspend
-        the account pending your review.
+        the account pending your review. Banning blocks a user's access (reversible); terminating permanently wipes their data
+        and is done from Banland.
       </p>
 
       {loading ? (
@@ -180,12 +197,18 @@ export default function AdminModeration() {
                           >
                             {busy === `rein-${b.user_id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Reinstate
                           </button>
+                          <Link
+                            to="/admin/banland"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border font-mono text-[10px] uppercase tracking-widest rounded-md hover:border-foreground transition-colors"
+                          >
+                            <BanIcon className="w-3 h-3" /> Terminate
+                          </Link>
                           <button
-                            onClick={() => terminate(b.user_id)}
+                            onClick={() => banUser(b.user_id)}
                             disabled={busy === `ban-${b.user_id}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-destructive-foreground font-mono text-[10px] uppercase tracking-widest rounded-md hover:opacity-90 transition-opacity"
                           >
-                            {busy === `ban-${b.user_id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <BanIcon className="w-3 h-3" />} Terminate
+                            {busy === `ban-${b.user_id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <BanIcon className="w-3 h-3" />} Ban
                           </button>
                         </div>
                       </div>
@@ -239,11 +262,18 @@ export default function AdminModeration() {
                             {busy === f.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <X className="w-3 h-3" />} Dismiss
                           </button>
                           <button
-                            onClick={() => terminate(f.user_id)}
+                            onClick={() => setFlagStatus(f, "upheld")}
+                            disabled={busy === f.id}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-border font-mono text-[10px] uppercase tracking-widest rounded-md hover:border-foreground transition-colors"
+                          >
+                            {busy === f.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />} Uphold
+                          </button>
+                          <button
+                            onClick={() => banUser(f.user_id)}
                             disabled={busy === `ban-${f.user_id}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-destructive text-destructive-foreground font-mono text-[10px] uppercase tracking-widest rounded-md hover:opacity-90 transition-opacity"
                           >
-                            {busy === `ban-${f.user_id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <BanIcon className="w-3 h-3" />} Terminate
+                            {busy === `ban-${f.user_id}` ? <Loader2 className="w-3 h-3 animate-spin" /> : <BanIcon className="w-3 h-3" />} Ban user
                           </button>
                         </div>
                       </div>
@@ -255,15 +285,6 @@ export default function AdminModeration() {
           </section>
         </div>
       )}
-      <TerminateConfirmDialog
-        open={!!terminateId}
-        targetName={terminateId ? (users[terminateId]?.full_name || "") : ""}
-        targetEmail={terminateId ? (users[terminateId]?.email || "") : ""}
-        adminEmail={user?.email || ""}
-        busy={terminating}
-        onClose={() => setTerminateId(null)}
-        onConfirm={doTerminate}
-      />
     </div>
   );
 }

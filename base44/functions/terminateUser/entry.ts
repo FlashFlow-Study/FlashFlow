@@ -71,6 +71,7 @@ export default async function(req) {
     if (existingBans.length > 0) {
       await base44.entities.Ban.update(existingBans[0].id, {
         status: 'banned',
+        terminated: true,
         reason,
         source: existingBans[0].source || 'manual',
         banned_date: new Date().toISOString()
@@ -85,6 +86,7 @@ export default async function(req) {
         reason,
         banned_date: new Date().toISOString(),
         status: 'banned',
+        terminated: true,
         source: 'manual'
       });
     }

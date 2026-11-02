@@ -1,0 +1,4 @@
+{
+  "name": "generateExamQuestions",
+  "entry": "entry.ts"
+}

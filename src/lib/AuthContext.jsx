@@ -19,6 +19,26 @@ export const AuthProvider = ({ children }) => {
     checkAppState();
   }, []);
 
+  // Live ban subscription: when a Ban record is created or deleted for the
+  // current user (e.g. an admin bans them, or auto-moderation suspends them),
+  // update the ban state in real time so the banned screen appears or clears
+  // without needing a page refresh.
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+    const unsubscribe = base44.entities.Ban.subscribe((event) => {
+      const rec = event.data || {};
+      if (rec.user_id !== user.id) return;
+      if (event.type === "create") {
+        setBan(rec);
+      } else if (event.type === "delete") {
+        setBan(null);
+      } else if (event.type === "update") {
+        setBan(rec);
+      }
+    });
+    return unsubscribe;
+  }, [isAuthenticated, user?.id]);
+
   const checkAppState = async () => {
     try {
       setIsLoadingPublicSettings(true);
@@ -105,7 +125,8 @@ export const AuthProvider = ({ children }) => {
             const fingerprintHash = await generateFingerprint();
             const res = await base44.functions.invoke("checkFingerprint", { fingerprint_hash: fingerprintHash });
             if (res?.data?.banned) {
-              window.location.reload();
+              const freshBan = await base44.entities.Ban.filter({ user_id: currentUser.id });
+              if (freshBan.length) setBan(freshBan[0]);
               return;
             }
           } catch {

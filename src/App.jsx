@@ -1,7 +1,9 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { base44 } from '@/api/base44Client';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -43,14 +45,40 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import OAuthConsent from './pages/OAuthConsent';
+import Maintenance from './pages/Maintenance';
+import ExamPractice from './pages/ExamPractice';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppLayout from '@/components/AppLayout';
 import BannedScreen from '@/components/BannedScreen';
 import BlogSite from '@/components/BlogSite';
 import { isBlogHost } from '@/lib/blogHost';
 
+const MAINTENANCE_BYPASS = new Set([
+  '/maintenance', '/admin', '/admin/verify', '/admin/data-privacy',
+  '/oauth-consent', '/oauth/consent', '/terms', '/privacy'
+]);
+
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, ban } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, ban, user } = useAuth();
+  const location = useLocation();
+  const [maintenance, setMaintenance] = useState(false);
+
+  // Fetch the maintenance record once on load. The entity is public-read so this
+  // works while signed out. A missing record or a fetch error fails open
+  // (maintenance stays false) so a glitch can never lock everyone out.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const items = await base44.entities.MaintenanceMode.list(undefined, 1);
+        const rec = Array.isArray(items) ? items[0] : null;
+        if (!cancelled) setMaintenance(rec && rec.enabled ? rec : false);
+      } catch {
+        if (!cancelled) setMaintenance(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -75,6 +103,16 @@ const AuthenticatedApp = () => {
   // Block banned users from using the app.
   if (ban) return <BannedScreen ban={ban} />;
 
+  // Maintenance gate: when enabled, every path except the bypass list shows the
+  // maintenance page. Admins always bypass so the owner can get in to switch it
+  // off. This is an in-app gate (not a redirect) so search ranking is unaffected.
+  const bypassed =
+    MAINTENANCE_BYPASS.has(location.pathname) || location.pathname.startsWith('/oauth');
+  const isAdmin = user?.role === 'admin';
+  if (maintenance && !bypassed && !isAdmin) {
+    return <Maintenance record={maintenance} />;
+  }
+
   // Render the main app
   return (
     <Routes>
@@ -82,6 +120,7 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/maintenance" element={<Maintenance />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
@@ -105,6 +144,7 @@ const AuthenticatedApp = () => {
           <Route path="/join" element={<Join />} />
           <Route path="/live/create" element={<LiveCreate />} />
           <Route path="/assign/:classroomId" element={<CreateAssignment />} />
+          <Route path="/exam/:deckId" element={<ExamPractice />} />
           <Route path="/account" element={<Account />} />
           <Route path="/admin/data-privacy" element={<AdminDataPrivacy />} />
           <Route path="/admin" element={<Admin />} />

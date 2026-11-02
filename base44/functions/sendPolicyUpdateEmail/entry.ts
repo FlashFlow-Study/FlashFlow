@@ -3,8 +3,11 @@ import { waitUntil } from 'base44:runtime';
 import { withEmailFooter } from '../../shared/emailFooter.ts';
 
 // Notifies every FlashFlow user when the Privacy Policy or Terms of Service is
-// updated. In test_to mode a single address is mailed and no auth is required;
-// the full mass-send is admin-only (same check the /admin ban page uses).
+// updated. In test_to mode a single address is mailed. The recipient list for
+// the mass-send comes from the documented app-users endpoint
+// (GET /api/apps/{app_id}/entities/User) using the BASE44_API_KEY secret,
+// because the entities API no longer allows listing the built-in User entity.
+const APP_ID = '6aa2f176f13d78a264f4a844';
 const POLICY_LINKS = {
   'Privacy Policy': 'https://flashflowstudy.com/privacy',
   'Terms of Service': 'https://flashflowstudy.com/terms'
@@ -27,6 +30,7 @@ export default async function(req) {
     const effectiveDate = (payload?.effective_date ?? '').toString().trim();
     const summary = (payload?.summary ?? '').toString().trim();
     const testTo = (payload?.test_to ?? '').toString().trim().toLowerCase();
+    const dryRun = payload?.dry_run === true;
 
     if (!POLICY_LINKS[policy]) {
       return Response.json({ error: 'policy must be "Privacy Policy" or "Terms of Service"' }, { status: 400 });
@@ -49,7 +53,7 @@ export default async function(req) {
     }
 
     // Build the recipient list. test_to mode: a single address.
-    // Otherwise the mass-send goes to every user.
+    // Otherwise the mass-send goes to every user via the app users endpoint.
     let recipients = [];
     if (testTo) {
       if (!EMAIL_RE.test(testTo)) {
@@ -57,7 +61,11 @@ export default async function(req) {
       }
       recipients = [testTo];
     } else {
-      // Walk every user via cursor pagination and collect unique emails.
+      const apiKey = process.env.BASE44_API_KEY;
+      if (!apiKey) {
+        return Response.json({ error: 'BASE44_API_KEY secret is not configured' }, { status: 500 });
+      }
+
       const seen = new Set();
       const collect = (items) => {
         for (const u of items || []) {
@@ -69,19 +77,31 @@ export default async function(req) {
         }
       };
 
-      let page = await base44.asServiceRole.entities.User.list({ limit: 1000 });
-      collect(page.items);
-      while (page.has_more && page.next_cursor) {
-        page = await base44.asServiceRole.entities.User.list({
-          cursor: page.next_cursor,
-          limit: 1000
+      // Page through the app users endpoint (limit max 10000).
+      let skip = 0;
+      while (true) {
+        const url = `https://app.base44.com/api/apps/${APP_ID}/entities/User?fields=email&limit=10000&skip=${skip}`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${apiKey}` }
         });
-        collect(page.items);
+        if (!res.ok) {
+          return Response.json({ error: `Failed to list app users (${res.status})` }, { status: 500 });
+        }
+        const page = await res.json();
+        const items = Array.isArray(page) ? page : [];
+        collect(items);
+        if (items.length < 10000) break;
+        skip += items.length;
       }
     }
 
     if (!recipients.length) {
       return Response.json({ ok: true, queued: 0 });
+    }
+
+    if (dryRun) {
+      // Lists and counts recipients without sending anything.
+      return Response.json({ ok: true, dry_run: true, recipient_count: recipients.length, recipients });
     }
 
     const link = POLICY_LINKS[policy];

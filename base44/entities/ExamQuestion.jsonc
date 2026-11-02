@@ -1,0 +1,85 @@
+{
+  "name": "ExamQuestion",
+  "type": "object",
+  "properties": {
+    "deck_id": {
+      "type": "string"
+    },
+    "question_type": {
+      "type": "string",
+      "enum": [
+        "multiple_choice",
+        "short_answer",
+        "extended"
+      ]
+    },
+    "question_text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "correct_answer": {
+      "type": "string",
+      "default": ""
+    },
+    "mark_scheme": {
+      "type": "string",
+      "default": ""
+    },
+    "marks": {
+      "type": "number",
+      "default": 1
+    },
+    "order": {
+      "type": "number",
+      "default": 0
+    },
+    "deck_is_public": {
+      "type": "boolean",
+      "default": false
+    },
+    "deck_classroom_members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "deck_id",
+    "question_type",
+    "question_text",
+    "marks"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.deck_is_public": true
+        },
+        {
+          "data.deck_classroom_members": "{{user.id}}"
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

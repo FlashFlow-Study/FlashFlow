@@ -1,0 +1,39 @@
+{
+  "name": "MaintenanceMode",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "message": {
+      "type": "string",
+      "default": ""
+    },
+    "estimated_return": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [
+    "enabled"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ import { Ban as BanIcon, ShieldCheck, FileLock, Loader2, Lock, Newspaper, Shield
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useSeo } from "@/lib/useSeo";
+import MaintenanceCard from "@/components/admin/MaintenanceCard";
 
 export default function Admin() {
   const { user } = useAuth();
@@ -130,6 +131,10 @@ export default function Admin() {
             </motion.div>
           );
         })}
+      </div>
+
+      <div className="mt-8">
+        <MaintenanceCard />
       </div>
     </div>
   );

@@ -65,12 +65,10 @@ export default function AdminBanland() {
         status: "banned",
         source: "manual",
       });
-      // Mark this user's recorded device fingerprints as terminated so future
-      // sign-ups from the same browser are flagged for ban evasion.
-      await base44.entities.DeviceFingerprint.updateMany(
-        { user_id: u.id },
-        { $set: { terminated: true } }
-      ).catch(() => {});
+      // Note: we do NOT touch device fingerprints here — that's only done on
+      // full account termination, so a ban stays reversible. Marking
+      // fingerprints as terminated would block this user from ever returning
+      // even after being unbanned.
       const fresh = await base44.entities.Ban.filter({ user_id: u.id });
       setBans((prev) => ({ ...prev, [u.id]: fresh[0] }));
       setDraftId(null);
@@ -88,6 +86,13 @@ export default function AdminBanland() {
       const b = bans[u.id];
       if (!b) return;
       await base44.entities.Ban.delete(b.id);
+      // Clear any terminated fingerprint flags so the user can sign back in
+      // from the same browser (fingerprint flags are only meaningful for real
+      // terminations, not bans).
+      await base44.entities.DeviceFingerprint.updateMany(
+        { user_id: u.id, terminated: true },
+        { $set: { terminated: false } }
+      ).catch(() => {});
       setBans((prev) => {
         const next = { ...prev };
         delete next[u.id];

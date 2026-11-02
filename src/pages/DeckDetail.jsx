@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Layers, Globe, Lock, Trash2, Play, Pencil, User, Star, School, Link2, Share2, Loader2 } from "lucide-react";
+import { Layers, Globe, Lock, Trash2, Play, Pencil, User, Star, School, Link2, Share2, Loader2, GraduationCap } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import BetaBadge from "@/components/BetaBadge";
 import ExportMenu from "@/components/ExportMenu";
 import StarToggle from "@/components/StarToggle";
 import { useAuth } from "@/lib/AuthContext";
 import { useCreators } from "@/hooks/useCreators";
 import { addRecentDeck } from "@/lib/recentDecks";
 import SpeakButton from "@/components/SpeakButton";
+import FavouriteButton from "@/components/FavouriteButton";
 import { resolveDeckLanguages } from "@/lib/deckLanguages";
 import { syncDeckCardsVisibility } from "@/lib/syncCardVisibility";
 import { toast } from "@/components/ui/use-toast";
@@ -27,14 +29,51 @@ export default function DeckDetail() {
   const [starredRecords, setStarredRecords] = useState({});
   const [starredOnly, setStarredOnly] = useState(false);
   const [moderating, setModerating] = useState(false);
+  const [favRecordId, setFavRecordId] = useState(null);
+  const [favLoaded, setFavLoaded] = useState(false);
+  const [examCount, setExamCount] = useState(null);
   const { creatorName } = useCreators(deck ? [deck] : []);
+
+  // Load this deck's favourite record for the signed-in user (RLS restricts
+  // reads to the owner, so only the user's own record can come back).
+  useEffect(() => {
+    if (!user || !id) return;
+    let cancelled = false;
+    setFavLoaded(false);
+    base44.entities.FavouriteDeck.filter({ deck_id: id })
+      .then((recs) => {
+        if (cancelled) return;
+        setFavRecordId(recs.length ? recs[0].id : null);
+      })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setFavLoaded(true); });
+    return () => { cancelled = true; };
+  }, [id, user?.id]);
+
+  const toggleFavourite = async () => {
+    if (!user) return;
+    if (favRecordId) {
+      try {
+        await base44.entities.FavouriteDeck.delete(favRecordId);
+        setFavRecordId(null);
+      } catch { /* ignore */ }
+    } else {
+      try {
+        const rec = await base44.entities.FavouriteDeck.create({
+          deck_id: id,
+          deck_title: deck?.title || "",
+        });
+        setFavRecordId(rec.id);
+      } catch { /* ignore */ }
+    }
+  };
 
   useEffect(() => {
     (async () => {
       try {
         const d = await base44.entities.Deck.get(id);
         setDeck(d);
-        addRecentDeck(id);
+        addRecentDeck(id, user?.id);
         const [c, stars] = await Promise.all([
           base44.entities.Card.filter({ deck_id: id }, "order", 100),
           base44.entities.UserCardStar.filter({ deck_id: id }).catch(() => []),
@@ -53,6 +92,9 @@ export default function DeckDetail() {
         const recs = {};
         valid.forEach((s) => { recs[s.card_id] = s.id; });
         setStarredRecords(recs);
+        base44.entities.ExamQuestion.count({ deck_id: id })
+          .then((n) => setExamCount(n || 0))
+          .catch(() => setExamCount(0));
       } catch {
         setDeck(false);
       } finally {
@@ -198,6 +240,14 @@ export default function DeckDetail() {
               >
                 <Share2 className="w-4 h-4" />
               </button>
+              {user && favLoaded && (
+                <FavouriteButton
+                  favourited={!!favRecordId}
+                  onToggle={toggleFavourite}
+                  size="w-4 h-4"
+                  className="border border-border p-2 shrink-0"
+                />
+              )}
             </div>
             {creatorName(deck) && (
               <Link
@@ -262,11 +312,31 @@ export default function DeckDetail() {
               </Link>
             ))}
           </div>
+
+          {/* Exam practice (beta) */}
+          <Link
+            to={`/exam/${id}`}
+            className="mt-3 group p-5 border border-border bg-card hover:border-primary transition-colors flex items-center justify-between rounded-md"
+          >
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <GraduationCap className="w-4.5 h-4.5 text-primary" />
+              </span>
+              <span className="font-display text-xl text-foreground">Exam practice</span>
+              <BetaBadge />
+              {examCount !== null && examCount > 0 && (
+                <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {examCount} {examCount === 1 ? "question" : "questions"}
+                </span>
+              )}
+            </div>
+            <Play className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+          </Link>
         </div>
 
         {/* Actions */}
         <div className="mt-8 flex flex-wrap gap-3">
-          <ExportMenu deck={deck} cards={cards} />
+          <ExportMenu deck={deck} cards={cards} starredIds={starredIds} />
           {deck.created_by_id === user?.id && (
             <>
               <Link

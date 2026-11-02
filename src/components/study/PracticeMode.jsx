@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { Check, X, ArrowRight } from "lucide-react";
+import { Check, X, ArrowRight, HelpCircle } from "lucide-react";
 import ProgressGauge from "./ProgressGauge";
 import SpecialCharToolbar from "@/components/SpecialCharToolbar";
 import { shuffle } from "@/lib/studyCards";
@@ -43,9 +43,13 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
   const [typeChecked, setTypeChecked] = useState(false);
   const [score, setScore] = useState(0);
   const [markedCorrect, setMarkedCorrect] = useState(false);
+  // Cards answered with "I don't know" are pushed to the back of the round, so
+  // the ones the learner doesn't know come up again (once per round) later on.
+  const [queue, setQueue] = useState(() => cards);
+  const requeuedRef = useRef(new Set());
   const activeInputRef = useRef(null);
 
-  const card = cards[index];
+  const card = queue[index];
   const promptLang = card?.flipped ? targetLang : sourceLang;
   const answerLang = card?.flipped ? sourceLang : targetLang;
   const promptImage = card?.flipped ? card?.definition_image_url : card?.term_image_url;
@@ -62,7 +66,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
       <div className="text-center max-w-md mx-auto">
         <h2 className="font-display text-4xl text-foreground mb-2">Practice complete</h2>
         <p className="font-mono text-sm text-muted-foreground mb-6">
-          You scored {score} / {cards.length}
+          You scored {score} / {queue.length}
         </p>
         <button
           onClick={onExit}
@@ -97,13 +101,7 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
     playSound(typeCorrect ? "question-right" : "question-wrong");
   };
 
-  const next = () => {
-    if (index >= cards.length - 1) {
-      onComplete?.({ cards_studied: cards.length, score });
-      setPhase("done");
-      return;
-    }
-    setIndex((i) => i + 1);
+  const resetQuestion = () => {
     setSelected(null);
     setMcChecked(false);
     setValue("");
@@ -112,10 +110,38 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
     setPhase("choose");
   };
 
+  const next = () => {
+    if (index >= queue.length - 1) {
+      onComplete?.({ cards_studied: cards.length, score });
+      setPhase("done");
+      return;
+    }
+    resetQuestion();
+    setIndex((i) => i + 1);
+  };
+
+  // Skip a question without answering: no score, and the card is re-queued at
+  // the end of the round (at most once per round) so unknown cards get priority
+  // later on instead of disappearing from the session.
+  const skipUnknown = () => {
+    playSound("question-wrong");
+    const alreadyRequeued = requeuedRef.current.has(card.id);
+    if (!alreadyRequeued) {
+      requeuedRef.current.add(card.id);
+      setQueue((q) => [...q, card]);
+    } else if (index >= queue.length - 1) {
+      onComplete?.({ cards_studied: cards.length, score });
+      setPhase("done");
+      return;
+    }
+    resetQuestion();
+    setIndex((i) => i + 1);
+  };
+
   return (
     <div className="flex flex-col items-center w-full max-w-2xl">
       <div className="w-full mb-8 flex items-center justify-between">
-        <ProgressGauge current={index + 1} total={cards.length} label="Question" />
+        <ProgressGauge current={index + 1} total={queue.length} label="Question" />
         <button onClick={onExit} className="text-xs font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground">
           Exit
         </button>
@@ -165,13 +191,21 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
             </div>
 
             {!mcChecked ? (
-              <button
-                onClick={submitChoice}
-                disabled={selected == null}
-                className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest disabled:opacity-40 hover:opacity-90 transition-opacity rounded-md"
-              >
-                Submit answer
-              </button>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={submitChoice}
+                  disabled={selected == null}
+                  className="px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest disabled:opacity-40 hover:opacity-90 transition-opacity rounded-md"
+                >
+                  Submit answer
+                </button>
+                <button
+                  onClick={skipUnknown}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest text-muted-foreground hover:border-destructive hover:text-destructive transition-colors rounded-md"
+                >
+                  <HelpCircle className="w-4 h-4" /> I don’t know
+                </button>
+              </div>
             ) : (
               <div className="mt-6">
                 <CardImage url={answerImage} className="mb-3" />
@@ -266,19 +300,27 @@ export default function PracticeMode({ cards, onExit, onComplete, onSwapCard, is
             )}
 
             {!typeChecked ? (
-              <button
-                onClick={checkType}
-                disabled={!value.trim()}
-                className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest disabled:opacity-40 hover:opacity-90 transition-opacity rounded-md"
-              >
-                Check answer
-              </button>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  onClick={checkType}
+                  disabled={!value.trim()}
+                  className="px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest disabled:opacity-40 hover:opacity-90 transition-opacity rounded-md"
+                >
+                  Check answer
+                </button>
+                <button
+                  onClick={skipUnknown}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 border border-border font-mono text-xs uppercase tracking-widest text-muted-foreground hover:border-destructive hover:text-destructive transition-colors rounded-md"
+                >
+                  <HelpCircle className="w-4 h-4" /> I don’t know
+                </button>
+              </div>
             ) : (
               <button
                 onClick={next}
                 className="mt-6 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity rounded-md inline-flex items-center gap-2"
               >
-                {index < cards.length - 1 ? "Next question" : "See results"} <ArrowRight className="w-4 h-4" />
+                {index < queue.length - 1 ? "Next question" : "See results"} <ArrowRight className="w-4 h-4" />
               </button>
             )}
           </>

@@ -56,8 +56,9 @@ export default async function(req: Request): Promise<Response> {
 Flag ONLY for:
 1. INAPPROPRIATE MATERIAL — sexual or explicit content, graphic violence or gore, hate speech or slurs, harassment or bullying of real people, promotion of illegal drugs or weapons, or other content unsuitable for a general educational audience.
 2. COPYRIGHTED MATERIAL — verbatim reproduction of substantial copyrighted text (book chapters, song lyrics, movie/TV scripts, full articles), pirated material, or trade secrets.
+3. TRADEMARK INFRINGEMENT — unauthorized use of a third party's trademark as if it were the user's own or in a way that implies affiliation/endorsement: protected brand names used deceptively, registered trademarks/slogans marked with ® or ™ that the user does not own (e.g., "I'm lovin' it®"), counterfeits, or logos/slogans reproduced to mislead. A factual, referential mention of a brand (e.g., studying what a company sells, a company's name in a vocabulary term) is acceptable.
 
-Do NOT flag: ordinary educational vocabulary, facts, definitions, user-authored summaries, short quotations used for study, common knowledge, or public-domain material.
+Do NOT flag: ordinary educational vocabulary, facts, definitions, user-authored summaries, short quotations used for study, common knowledge, public-domain material, or a brand name used referentially rather than as the user's own mark.
 
 Deck content:
 ${content}
@@ -72,7 +73,7 @@ Return a strict verdict. If the content is acceptable, set flagged=false and cat
         type: 'object',
         properties: {
           flagged: { type: 'boolean' },
-          category: { type: 'string', enum: ['inappropriate', 'copyright', 'none'] },
+          category: { type: 'string', enum: ['inappropriate', 'copyright', 'trademark', 'none'] },
           severity: { type: 'string', enum: ['low', 'medium', 'high'] },
           reason: { type: 'string' }
         },

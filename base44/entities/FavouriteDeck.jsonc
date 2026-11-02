@@ -1,0 +1,31 @@
+{
+  "name": "FavouriteDeck",
+  "type": "object",
+  "properties": {
+    "deck_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "deck_title": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [
+    "deck_id"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

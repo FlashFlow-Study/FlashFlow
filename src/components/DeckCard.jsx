@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Globe, Lock, Layers, User, School, Link2 } from "lucide-react";
 import UserBadges from "@/components/UserBadges";
+import FavouriteButton from "@/components/FavouriteButton";
 import { deckVisibility } from "@/lib/deckVisibility";
 
 function relativeDate(iso) {
@@ -17,7 +18,7 @@ function relativeDate(iso) {
   return `${Math.floor(d / 30)}mo ago`;
 }
 
-export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact, creatorName, badges }) {
+export default function DeckCard({ deck, index = 0, cardCount, lastStudied, compact, creatorName, badges, favourited, onToggle }) {
   const navigate = useNavigate();
   const vis = deckVisibility(deck);
   const studied = relativeDate(lastStudied);
@@ -65,11 +66,14 @@ export default function DeckCard({ deck, index = 0, cardCount, lastStudied, comp
             <Layers className="w-3.5 h-3.5" />
             {cardCount ?? "—"} cards
           </span>
-          {studied && (
-            <span className="text-[10px] font-mono uppercase tracking-widest text-primary/80">
-              Studied {studied}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {studied && (
+              <span className="text-[10px] font-mono uppercase tracking-widest text-primary/80">
+                Studied {studied}
+              </span>
+            )}
+            <FavouriteButton favourited={favourited} onToggle={onToggle} />
+          </div>
         </div>
         {creatorName && (
           <button
